@@ -1,198 +1,183 @@
+// script.js
 document.addEventListener('DOMContentLoaded', () => {
-  const jarLid = document.getElementById('jar-lid');
-  const jarBody = document.getElementById('jar-body');
   const blockIntro = document.getElementById('block-intro');
   const blockInvitation = document.getElementById('block-invitation');
   const backgroundMusic = document.getElementById('background-music');
+  const staticFlowersContainer = document.getElementById('static-flowers');
+  const flowerRainContainer = document.getElementById('flower-rain');
+  const flowerRainMainContainer = document.getElementById('flower-rain-main');
   
-  // Elementos de la cuenta regresiva
-  const daysElement = document.getElementById('days');
-  const hoursElement = document.getElementById('hours');
-  const minutesElement = document.getElementById('minutes');
-  const secondsElement = document.getElementById('seconds');
-  
-  // Fecha objetivo: 8 de NOVIEMBRE de 2025 a las 4:00 PM
-  const targetDate = new Date(2025, 10, 8, 16, 00, 0);
-  
-  // Forzar repintado inicial para Chrome
-  setTimeout(() => {
-    jarBody.style.display = 'none';
-    jarBody.offsetHeight; // Trigger reflow
-    jarBody.style.display = 'block';
-  }, 100);
+  let audioContext;
+  let analyser;
+  let microphone;
+  let isBlowDetected = false;
 
-  // Agregar animación continua de palpitar
-  gsap.to('.jar-container', {
-    scale: 1.05,
-    duration: 1,
-    repeat: -1,
-    yoyo: true,
-    ease: "sine.inOut"
-  });
-
-  // Función para actualizar la cuenta regresiva
-  function updateCountdown() {
-    const now = new Date();
-    const difference = targetDate - now;
+  // Inicializar flores estáticas
+  function initializeStaticFlowers() {
+    const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
+    const sizes = ['small', 'medium', 'large'];
     
-    if (difference <= 0) {
-      daysElement.textContent = '00';
-      hoursElement.textContent = '00';
-      minutesElement.textContent = '00';
-      secondsElement.textContent = '00';
-      return;
-    }
-    
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-    
-    daysElement.textContent = days.toString().padStart(2, '0');
-    hoursElement.textContent = hours.toString().padStart(2, '0');
-    minutesElement.textContent = minutes.toString().padStart(2, '0');
-    secondsElement.textContent = seconds.toString().padStart(2, '0');
-  }
-  
-  // Iniciar cuenta regresiva
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
-
-  // Intentar reproducir música automáticamente
-  function playMusic() {
-    if (backgroundMusic) {
-      backgroundMusic.play()
-        .then(() => {
-          console.log('Música reproduciéndose automáticamente');
-        })
-        .catch(error => {
-          console.log('Error en reproducción automática:', error);
-        });
+    // Crear 25 flores estáticas distribuidas
+    for (let i = 0; i < 25; i++) {
+      const flower = document.createElement('div');
+      flower.className = `static-flower ${sizes[Math.floor(Math.random() * sizes.length)]}`;
+      
+      // Posición aleatoria
+      const top = Math.random() * 100;
+      const left = Math.random() * 100;
+      
+      // Tipo de flor aleatorio
+      const flowerType = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+      
+      flower.style.top = `${top}%`;
+      flower.style.left = `${left}%`;
+      flower.innerHTML = `<img src="./media/${flowerType}" alt="Flor">`;
+      
+      // Animación delay aleatorio
+      flower.style.animationDelay = `${Math.random() * 5}s`;
+      
+      staticFlowersContainer.appendChild(flower);
     }
   }
 
-  // Intentar reproducir al cargar
-  playMusic();
-
-  // CARRUSEL SIMPLIFICADO - PARA MÚLTIPLES CARRUSELES
-  function initialize3DCarousel() {
-    const carousels = document.querySelectorAll('.carousel-3d-container');
+  // Inicializar lluvia de flores
+  function initializeFlowerRain(container) {
+    const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
     
-    carousels.forEach(container => {
-      const slides = container.querySelectorAll('.carousel-slide');
-      const totalSlides = slides.length;
+    function createFallingFlower() {
+      const flower = document.createElement('div');
+      flower.className = 'falling-flower';
       
-      if (totalSlides === 0) return;
+      const flowerType = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+      const left = Math.random() * 100;
+      const duration = 15 + Math.random() * 10; // 15-25 segundos
+      const delay = Math.random() * 5;
       
-      let currentSlide = 0;
-      let rotationInterval;
+      flower.style.left = `${left}%`;
+      flower.style.animationDuration = `${duration}s`;
+      flower.style.animationDelay = `${delay}s`;
+      flower.innerHTML = `<img src="./media/${flowerType}" alt="Flor">`;
       
-      // Actualizar clases de los slides
-      function updateSlides() {
-        slides.forEach((slide, index) => {
-          // Remover todas las clases
-          slide.classList.remove('active', 'prev', 'next', 'far-prev', 'far-next');
-          
-          // Calcular la posición relativa
-          let diff = index - currentSlide;
-          
-          // Ajustar para el carrusel circular
-          if (diff < -Math.floor(totalSlides / 2)) {
-            diff += totalSlides;
-          } else if (diff > Math.floor(totalSlides / 2)) {
-            diff -= totalSlides;
-          }
-          
-          // Asignar clases según la posición
-          if (diff === 0) {
-            slide.classList.add('active');
-          } else if (diff === -1 || (diff === totalSlides - 1 && currentSlide === 0)) {
-            slide.classList.add('prev');
-          } else if (diff === 1 || (diff === -totalSlides + 1 && currentSlide === totalSlides - 1)) {
-            slide.classList.add('next');
-          } else if (diff === -2 || (diff === totalSlides - 2 && currentSlide <= 1)) {
-            slide.classList.add('far-prev');
-          } else if (diff === 2 || (diff === -totalSlides + 2 && currentSlide >= totalSlides - 2)) {
-            slide.classList.add('far-next');
-          }
-        });
-      }
+      container.appendChild(flower);
       
-      // Cambiar al siguiente slide
-      function nextSlide() {
-        currentSlide = (currentSlide + 1) % totalSlides;
-        updateSlides();
-      }
-      
-      // Inicializar
-      updateSlides();
-      
-      // Limpiar intervalo anterior si existe
-      if (rotationInterval) {
-        clearInterval(rotationInterval);
-      }
-      
-      // Rotación automática cada 4 segundos (más tiempo)
-      rotationInterval = setInterval(nextSlide, 4000);
-      
-      // Pausar rotación cuando la página no está visible
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          clearInterval(rotationInterval);
-        } else {
-          rotationInterval = setInterval(nextSlide, 4000);
+      // Remover flor después de caer
+      setTimeout(() => {
+        if (flower.parentNode) {
+          flower.parentNode.removeChild(flower);
         }
-      });
-    });
+      }, duration * 1000);
+    }
+    
+    // Crear flores continuamente
+    setInterval(createFallingFlower, 500);
+    
+    // Crear algunas flores iniciales
+    for (let i = 0; i < 10; i++) {
+      setTimeout(createFallingFlower, i * 300);
+    }
   }
 
-  // EVENTO CLICK ORIGINAL MODIFICADO
-  jarLid.addEventListener('click', () => {
-    // Intentar reproducir música si no se ha podido antes
+  // Detección de soplo
+  async function initBlowDetection() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: false
+        } 
+      });
+      
+      audioContext = new AudioContext();
+      analyser = audioContext.createAnalyser();
+      microphone = audioContext.createMediaStreamSource(stream);
+      
+      analyser.fftSize = 256;
+      microphone.connect(analyser);
+      
+      detectBlow();
+      
+    } catch (error) {
+      console.log('Micrófono no disponible, usando click fallback');
+      setupClickFallback();
+    }
+  }
+
+  function detectBlow() {
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const blowThreshold = 180; // Ajustable según sensibilidad
+    let blowCounter = 0;
+    
+    function checkBlow() {
+      analyser.getByteFrequencyData(dataArray);
+      const volume = Math.max(...dataArray);
+      
+      if (volume > blowThreshold && !isBlowDetected) {
+        blowCounter++;
+        if (blowCounter > 3) { // Confirmar soplo
+          handleBlowDetected();
+        }
+      } else {
+        blowCounter = Math.max(0, blowCounter - 1);
+      }
+      
+      requestAnimationFrame(checkBlow);
+    }
+    checkBlow();
+  }
+
+  function handleBlowDetected() {
+    if (isBlowDetected) return;
+    
+    isBlowDetected = true;
+    
+    // Efecto visual de soplo
+    blockIntro.classList.add('blow-detected');
+    
+    // Animar flores
+    gsap.to('.static-flower', {
+      x: "random(-30, 30)",
+      y: "random(-20, 20)", 
+      rotation: "random(-15, 15)",
+      duration: 0.8,
+      stagger: 0.05,
+      ease: "power2.out"
+    });
+    
+    // Reproducir música y transición
     playMusic();
     
-    // Mejorar rendimiento preparando elementos para animación
-    jarLid.style.willChange = 'transform';
-    jarBody.style.willChange = 'transform, opacity';
-    
-    // Animar tapa hacia arriba
-    gsap.to(jarLid, {
-      y: -200,
-      duration: 1.2,
-      ease: "power2.out",
-      onComplete: () => {
-        jarLid.style.willChange = 'auto';
-      }
-    });
-
-    // Animar frasco hacia abajo y desvanecer
-    gsap.to(jarBody, {
-      y: 200,
-      opacity: 0,
-      duration: 1.5,
-      ease: "power2.in",
-      onComplete: () => {
-        jarBody.style.willChange = 'auto';
-        // Ocultar bloque 1
-        blockIntro.classList.add('hidden');
-        // Mostrar bloque 2 (invitación)
-        blockInvitation.classList.remove('hidden');
-        gsap.fromTo(blockInvitation, 
-          { opacity: 0, y: 20 }, 
-          { opacity: 1, y: 0, duration: 1.2 }
-        );
-        
-        // INICIALIZAR CARRUSEL después de mostrar el bloque
-        setTimeout(initialize3DCarousel, 500);
-      }
-    });
-  });
-  
-  // Detectar Chrome específicamente para aplicar mejoras adicionales
-  const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-  if (isChrome) {
-    document.body.classList.add('chrome-browser');
+    setTimeout(() => {
+      blockIntro.classList.add('hidden');
+      blockInvitation.classList.remove('hidden');
+      gsap.fromTo(blockInvitation, 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 1.5 }
+      );
+    }, 1500);
   }
+
+  function setupClickFallback() {
+    document.addEventListener('click', () => {
+      if (!isBlowDetected) {
+        handleBlowDetected();
+      }
+    });
+  }
+
+  function playMusic() {
+    if (backgroundMusic) {
+      backgroundMusic.volume = 0.7;
+      backgroundMusic.play().catch(console.log);
+    }
+  }
+
+  // Inicializar todo
+  initializeStaticFlowers();
+  initializeFlowerRain(flowerRainContainer);
+  initializeFlowerRain(flowerRainMainContainer);
+  initBlowDetection();
+
+  // Mantén tu código existente para cuenta regresiva, carruseles, etc.
+  // ... (tu código JavaScript existente) ...
 });
-
-
