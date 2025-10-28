@@ -3,140 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MIS_XV GABY</title>
+  <title>Invitación de Boda</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Agregar Google Font para estilo carta -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Audio con reproducción automática y oculto -->
-  <audio id="background-music" autoplay loop hidden>
+  <!-- Audio -->
+  <audio id="background-music" loop hidden>
     <source src="./media/music.mp3" type="audio/mpeg">
-    Tu navegador no soporta el elemento de audio.
   </audio>
 
-  <!-- Bloque 1: Intro con frasco -->
+  <!-- Bloque 1: Intro con flores -->
   <section class="block" id="block-intro">
+    <!-- Flores estáticas de fondo -->
+    <div class="static-flowers" id="static-flowers"></div>
+    
+    <!-- Lluvia constante de flores -->
+    <div class="flower-rain" id="flower-rain"></div>
+    
+    <!-- Instrucción -->
     <div class="instruction-container">
-      <p class="instruction-text">Toca la corona para ver la invitación</p>
-      <div class="arrows">
-        <div class="arrow">➤</div>
-        <div class="arrow">➤</div>
-        <div class="arrow">➤</div>
-      </div>
-    </div>
-    <div class="jar-container">
-      <img id="jar-body" src="./media/hunnySVG_BOULD.svg" alt="Frasco de miel" decoding="async" loading="eager">
-      <img id="jar-lid" src="./media/hunnySVG_TAPA.svg" alt="Tapa del frasco">
+      <div class="blow-text">SOPLA</div>
+      <div class="click-text">o da click para revelar la invitación</div>
     </div>
   </section>
 
-  <!-- Bloque 2: Invitación con cuenta regresiva y ubicación -->
+  <!-- Bloque 2: Invitación principal -->
   <section class="block hidden" id="block-invitation">
-    <!-- Cuenta regresiva -->
+    <!-- La lluvia de flores continúa aquí -->
+    <div class="flower-rain" id="flower-rain-main"></div>
+    
+    <!-- Tu contenido existente de invitación -->
     <div class="date-title-container">
-    <h1 class="date-title">8 de Noviembre del 2025</h1>
+      <h1 class="date-title">8 de Noviembre del 2025</h1>
     </div>
+    
     <div class="countdown-container">
-      <div class="countdown">
-        <div class="time-unit">
-          <div class="time-value" id="days">00</div>
-          <div class="time-label">Días</div>
-        </div>
-        <div class="separator">:</div>
-        <div class="time-unit">
-          <div class="time-value" id="hours">00</div>
-          <div class="time-label">Horas</div>
-        </div>
-        <div class="separator">:</div>
-        <div class="time-unit">
-          <div class="time-value" id="minutes">00</div>
-          <div class="time-label">Minutos</div>
-        </div>
-        <div class="separator">:</div>
-        <div class="time-unit">
-          <div class="time-value" id="seconds">00</div>
-          <div class="time-label">Segundos</div>
-        </div>
-      </div>
+      <!-- ... tu cuenta regresiva existente ... -->
     </div>
 
-    <!-- Imagen de invitación -->
     <img src="./media/prueba_abre.gif" alt="Invitación" class="invitation-img">
     <img src="./media/imagen_2.gif" alt="Imagen 2" class="invitation-img">
 
-    <!-- carousel 5 imagenes --!>
-    <!-- ... después de imagen_2.gif ... -->
-
-    <!-- Carrusel 3D Minimalista -->
-    <div class="carousel-3d-container">
-      <div class="carousel-3d">
-        <div class="carousel-slide">
-          <img src="./media/carousel6.jpg" alt="Imagen 6">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel7.jpg" alt="Imagen 7">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel8.jpg" alt="Imagen 8">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel9.jpg" alt="Imagen 9">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel10.jpg" alt="Imagen 10">
-        </div>
-      </div>
-    </div>
-     <!-- imagen_3 misa -->
-    <img src="./media/imagen_3.gif" alt="Imagen 3" class="invitation-img">
-
-    <!-- Botón de ubicación -->
-    <div class="location-container">
-      <button class="location-button" onclick="window.open('https://www.google.com/maps/place/Shrine+of+Our+Lady+of+Patronage/@22.7781686,-102.568705,17z/data=!3m1!4b1!4m6!3m5!1s0x86824e851f758f5f:0xc123a0f8b289f545!8m2!3d22.7781686!4d-102.5661301!16s%2Fg%2F11b76vydvy?entry=ttu&g_ep=EgoyMDI1MTAwOC4wIKXMDSoASAFQAw%3D%3D', '_blank')">
-        📍 Click para ver la ubicación del templo
-      </button>
-    </div>
-
-    <!-- Carrusel 2 (NUEVO - solo copia y pega) -->
-    <div class="carousel-3d-container">
-      <div class="carousel-3d">
-        <div class="carousel-slide">
-          <img src="./media/carousel1.jpg" alt="Imagen 1">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel2.jpg" alt="Imagen 2">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel3.jpg" alt="Imagen 3">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel4.jpg" alt="Imagen 4">
-        </div>
-        <div class="carousel-slide">
-          <img src="./media/carousel5.jpg" alt="Imagen 5">
-        </div>
-      </div>
-    </div>
+    <!-- Carruseles, ubicaciones, etc... -->
+    <!-- ... mantén todo tu contenido existente ... -->
     
-     <!-- imagen_4 recepcion -->
-    <img src="./media/imagen_4.gif" alt="Imagen 4" class="invitation-img">
-
-    <div class="location-container">
-      <button class="location-button" onclick="window.open('https://www.google.com/maps/place/Villas+de+Guadalupe+8,+98612+Fraccionamiento+Villas+de+Guadalupe,+Zac./@22.7605034,-102.4814803,17z/data=!3m1!4b1!4m5!3m4!1s0x868249a67220628d:0x5bc2161f97370244!8m2!3d22.7604985!4d-102.4789054?entry=ttu&g_ep=EgoyMDI1MTAwOC4wIKXMDSoASAFQAw%3D%3D', '_blank')">
-        📍 Click para ver la ubicación de la recepción
-      </button>
-    </div>
-
-    <!-- imagen_5 padrinos -->
-    <img src="./media/imagen_5.gif" alt="Imagen 5" class="invitation-img">
-    <!-- imagen_6 carta -->
-    <img src="./media/imagen_6.gif" alt="Imagen 6" class="invitation-img">
-    
-  </section>
-
-  <section class="block hidden" id="block-extra">
-    <p>Aquí puedes poner más cosas después (texto, botones, música, etc.)</p>
   </section>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
