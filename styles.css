@@ -4,23 +4,24 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #3D1A5A, #6B3F8F, #8C5FB2, #BCA3D9, #F5D76E);
+  background: linear-gradient(135deg, #0057A3 0%, #A3D4F7 50%, #F5F9FF 100%);
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
-/* Bloques */
-.block {
+/* Bloque introductorio - PANTALLA COMPLETA DE FLORES */
+#block-intro {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
+  overflow: hidden;
 }
 
-/* Flores estáticas */
+/* Flores estáticas - MUCHAS MÁS FLORES */
 .static-flowers {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -32,30 +33,33 @@ body {
 .static-flower {
   position: absolute;
   pointer-events: none;
-  animation: float 6s ease-in-out infinite;
+  animation: float 8s ease-in-out infinite;
 }
 
 .static-flower img {
-  width: 40px;
-  height: 40px;
-  opacity: 0.8;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+  opacity: 0.9;
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
 }
 
-/* Diferentes tamaños */
+/* Diferentes tamaños - MÁS VARIEDAD */
 .static-flower.small img {
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
 }
 
 .static-flower.medium img {
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
 }
 
 .static-flower.large img {
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
+}
+
+.static-flower.xlarge img {
+  width: 65px;
+  height: 65px;
 }
 
 /* Lluvia de flores */
@@ -77,14 +81,19 @@ body {
 }
 
 .falling-flower img {
-  width: 25px;
-  height: 25px;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(5deg); }
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg) scale(1); 
+  }
+  25% { 
+    transform: translateY(-8px) rotate(2deg) scale(1.02); 
+  }
+  75% { 
+    transform: translateY(4px) rotate(-1deg) scale(0.98); 
+  }
 }
 
 @keyframes fall {
@@ -93,72 +102,63 @@ body {
   }
 }
 
-/* Instrucciones */
+/* Instrucciones - MÁS PROMINENTE */
 .instruction-container {
   text-align: center;
-  z-index: 10;
+  z-index: 100;
   position: relative;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 30px 40px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(245, 249, 255, 0.15);
+  backdrop-filter: blur(15px);
+  padding: 40px 50px;
+  border-radius: 25px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 87, 163, 0.2);
 }
 
 .blow-text {
   font-family: 'Dancing Script', cursive;
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 700;
-  color: #FFFFFF;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-  margin-bottom: 10px;
+  color: #0057A3;
+  text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+  margin-bottom: 8px;
 }
 
 .click-text {
   font-family: 'Arial', sans-serif;
-  font-size: 16px;
-  color: #FFFFFF;
+  font-size: 18px;
+  color: #0057A3;
+  font-weight: 500;
   opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
 }
 
 /* Efecto de soplo detectado */
 .blow-detected .static-flower {
-  animation: shake 0.5s ease-in-out !important;
+  animation: shake 0.8s ease-in-out !important;
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0) rotate(0deg); }
-  25% { transform: translateX(-10px) rotate(-5deg); }
-  75% { transform: translateX(10px) rotate(5deg); }
-}
-
-/* Mantén tus estilos existentes para la invitación */
-.countdown-container, .location-container, .invitation-img, 
-.carousel-3d-container, .date-title-container {
-  position: relative;
-  z-index: 3;
-}
-
-.hidden {
-  display: none !important;
+  0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
+  25% { transform: translateX(-15px) rotate(-8deg) scale(1.1); }
+  50% { transform: translateX(8px) rotate(4deg) scale(0.95); }
+  75% { transform: translateX(-8px) rotate(-4deg) scale(1.05); }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .blow-text { font-size: 36px; }
-  .click-text { font-size: 14px; }
-  .instruction-container { padding: 20px 30px; }
-  
-  .static-flower.medium img { width: 30px; height: 30px; }
-  .static-flower.large img { width: 45px; height: 45px; }
+  .blow-text { font-size: 42px; }
+  .click-text { font-size: 16px; }
+  .instruction-container { padding: 30px 40px; }
 }
 
 @media (max-width: 480px) {
-  .blow-text { font-size: 28px; }
-  .click-text { font-size: 12px; }
-  .instruction-container { padding: 15px 20px; }
+  .blow-text { font-size: 36px; }
+  .click-text { font-size: 14px; }
+  .instruction-container { padding: 25px 30px; margin: 20px; }
   
-  .static-flower img { width: 20px; height: 20px; }
-  .static-flower.large img { width: 35px; height: 35px; }
+  .static-flower.small img { width: 18px; height: 18px; }
+  .static-flower.medium img { width: 28px; height: 28px; }
+  .static-flower.large img { width: 40px; height: 40px; }
+  .static-flower.xlarge img { width: 50px; height: 50px; }
 }
