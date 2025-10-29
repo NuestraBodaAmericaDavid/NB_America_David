@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let isBlowDetected = false;
   let blowDetectionActive = false;
 
-  // Inicializar MUCHAS flores estáticas
+  // Inicializar MUCHAS MÁS flores estáticas
   function initializeStaticFlowers() {
     const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
-    const sizes = ['small', 'medium', 'large', 'xlarge'];
+    const sizes = ['tiny', 'small', 'medium', 'large', 'xlarge'];
     
-    // Crear 60 flores estáticas - ¡MUCHAS MÁS!
-    for (let i = 0; i < 60; i++) {
+    // Crear 120 flores estáticas - ¡MUCHAS MÁS!
+    for (let i = 0; i < 120; i++) {
       const flower = document.createElement('div');
       const size = sizes[Math.floor(Math.random() * sizes.length)];
       flower.className = `static-flower ${size}`;
@@ -33,18 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
       
       flower.style.top = `${top}%`;
       flower.style.left = `${left}%`;
-      flower.style.opacity = 0.7 + Math.random() * 0.3; // Variar opacidad
+      flower.style.opacity = 0.6 + Math.random() * 0.4; // Variar opacidad
       flower.innerHTML = `<img src="./media/${flowerType}" alt="Flor">`;
       
       // Animación delay y duración aleatoria
-      flower.style.animationDelay = `${Math.random() * 6}s`;
-      flower.style.animationDuration = `${6 + Math.random() * 4}s`;
+      flower.style.animationDelay = `${Math.random() * 8}s`;
+      flower.style.animationDuration = `${7 + Math.random() * 5}s`;
       
       staticFlowersContainer.appendChild(flower);
     }
   }
 
-  // Inicializar lluvia de flores
+  // Inicializar lluvia de flores MÁS DENSA
   function initializeFlowerRain(container) {
     const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
     
@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const flowerType = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
       const left = Math.random() * 100;
-      const duration = 12 + Math.random() * 8; // 12-20 segundos
-      const delay = Math.random() * 3;
-      const size = 20 + Math.random() * 15; // 20-35px
+      const duration = 10 + Math.random() * 10; // 10-20 segundos
+      const delay = Math.random() * 2;
+      const size = 15 + Math.random() * 20; // 15-35px
       
       flower.style.left = `${left}%`;
       flower.style.animationDuration = `${duration}s`;
@@ -73,26 +73,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }, duration * 1000);
     }
     
-    // Crear flores continuamente - MÁS FRECUENTE
-    setInterval(createFallingFlower, 300);
+    // Crear flores continuamente - MUCHO MÁS FRECUENTE
+    setInterval(createFallingFlower, 150);
     
-    // Crear flores iniciales
-    for (let i = 0; i < 15; i++) {
-      setTimeout(createFallingFlower, i * 200);
+    // Crear muchas flores iniciales
+    for (let i = 0; i < 25; i++) {
+      setTimeout(createFallingFlower, i * 100);
     }
   }
 
   // DETECCIÓN DE SOPLO MEJORADA
   async function initBlowDetection() {
     try {
-      // SOLO pedir audio, no video
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: false
         },
-        video: false // IMPORTANTE: no pedir video
+        video: false
       });
       
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -107,16 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
       detectBlow();
       
     } catch (error) {
-      console.log('Micrófono no disponible:', error);
-      // NO hacer nada - el click funcionará como fallback
+      console.log('Micrófono no disponible, usando solo click');
     }
   }
 
   function detectBlow() {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const blowThreshold = 160; // Sensibilidad ajustada
+    const blowThreshold = 150;
     let blowCounter = 0;
-    const blowConfirmation = 5; // Necesita 5 frames consecutivos
+    const blowConfirmation = 4;
     
     function checkBlow() {
       if (!blowDetectionActive) return;
@@ -142,28 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isBlowDetected) return;
     
     isBlowDetected = true;
-    blowDetectionActive = false; // Detener detección
+    blowDetectionActive = false;
     
-    // Efecto visual de soplo MEJORADO
+    // Aplicar efecto de soplo suave
     blockIntro.classList.add('blow-detected');
     
-    // Animar TODAS las flores más dramáticamente
-    gsap.to('.static-flower', {
-      x: "random(-40, 40)",
-      y: "random(-30, 30)", 
-      rotation: "random(-20, 20)",
-      scale: "random(0.8, 1.3)",
-      duration: 1.2,
-      stagger: {
-        amount: 0.6,
-        from: "random"
-      },
-      ease: "power2.out"
-    });
-    
-    // Reproducir música y transición
+    // Reproducir música
     playMusic();
     
+    // Transición a siguiente pantalla
     setTimeout(() => {
       blockIntro.classList.add('hidden');
       blockInvitation.classList.remove('hidden');
@@ -171,38 +156,25 @@ document.addEventListener('DOMContentLoaded', () => {
         { opacity: 0, scale: 0.9 }, 
         { opacity: 1, scale: 1, duration: 1.8, ease: "back.out(1.7)" }
       );
-    }, 1800);
+    }, 2500); // Dar tiempo a la animación de soplo
   }
 
-  // CLICK FUNCIONAL SIEMPRE
+  // CLICK FUNCIONAL SIEMPRE - CORREGIDO
   function setupClickInteraction() {
     // Click en cualquier parte de la pantalla
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', handleClick);
+    document.addEventListener('touchstart', handleClick);
+    
+    function handleClick(e) {
       if (!isBlowDetected) {
         // Si la detección de soplo está activa, desactivarla
-        if (blowDetectionActive) {
+        if (blowDetectionActive && microphone) {
           blowDetectionActive = false;
-          // Cerrar stream de micrófono si existe
-          if (microphone) {
-            microphone.disconnect();
-          }
+          microphone.disconnect();
         }
         handleBlowDetected();
       }
-    });
-    
-    // También permitir touch
-    document.addEventListener('touchstart', (e) => {
-      if (!isBlowDetected) {
-        if (blowDetectionActive) {
-          blowDetectionActive = false;
-          if (microphone) {
-            microphone.disconnect();
-          }
-        }
-        handleBlowDetected();
-      }
-    });
+    }
   }
 
   function playMusic() {
@@ -215,12 +187,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // INICIALIZAR TODO
-  initializeStaticFlowers();
-  initializeFlowerRain(flowerRainContainer);
-  initializeFlowerRain(flowerRainMainContainer);
-  setupClickInteraction(); // SIEMPRE activar click
-  initBlowDetection(); // Intentar detección de soplo
+  function init() {
+    initializeStaticFlowers();
+    initializeFlowerRain(flowerRainContainer);
+    initializeFlowerRain(flowerRainMainContainer);
+    setupClickInteraction();
+    initBlowDetection();
+    
+    console.log('Página cargada - Click o sopla para continuar');
+  }
 
-  // Tu código existente para cuenta regresiva, etc.
+  init();
+
+  // Tu código existente para cuenta regresiva, carruseles, etc.
   // ... (mantén tu código JavaScript existente) ...
 });
