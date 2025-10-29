@@ -19,6 +19,18 @@ body {
   overflow: hidden;
 }
 
+/* Imagen principal - SIN ESQUINAS */
+.intro-main-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  border-radius: 0 !important;
+}
+
 /* Flores estáticas - MUCHAS MÁS FLORES */
 .static-flowers {
   position: absolute;
@@ -27,7 +39,7 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .static-flower {
@@ -41,28 +53,33 @@ body {
   filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
 }
 
-/* Diferentes tamaños - MÁS VARIEDAD */
+/* Diferentes tamaños - MÁS VARIEDAD Y MÁS FLORES */
+.static-flower.tiny img {
+  width: 15px;
+  height: 15px;
+}
+
 .static-flower.small img {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
 }
 
 .static-flower.medium img {
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
 }
 
 .static-flower.large img {
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
 }
 
 .static-flower.xlarge img {
-  width: 65px;
-  height: 65px;
+  width: 70px;
+  height: 70px;
 }
 
-/* Lluvia de flores */
+/* Lluvia de flores - MÁS DENSA */
 .flower-rain {
   position: fixed;
   top: 0;
@@ -70,7 +87,7 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .falling-flower {
@@ -102,17 +119,43 @@ body {
   }
 }
 
-/* Instrucciones - MÁS PROMINENTE */
+/* ANIMACIÓN DE SOPLO - SUAVE COMO VIENTO */
+@keyframes blow-effect {
+  0% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
+  20% {
+    transform: translateX(8px) translateY(-5px) rotate(3deg);
+  }
+  40% {
+    transform: translateX(25px) translateY(-12px) rotate(8deg);
+  }
+  60% {
+    transform: translateX(45px) translateY(-8px) rotate(12deg);
+  }
+  80% {
+    transform: translateX(60px) translateY(-3px) rotate(10deg);
+  }
+  100% {
+    transform: translateX(80px) translateY(2px) rotate(5deg);
+  }
+}
+
+.blow-detected .static-flower {
+  animation: blow-effect 2.5s ease-out forwards !important;
+}
+
+/* Instrucciones - SOBRE TODO */
 .instruction-container {
   text-align: center;
   z-index: 100;
   position: relative;
-  background: rgba(245, 249, 255, 0.15);
-  backdrop-filter: blur(15px);
+  background: rgba(245, 249, 255, 0.2);
+  backdrop-filter: blur(20px);
   padding: 40px 50px;
   border-radius: 25px;
-  border: 2px solid rgba(212, 175, 55, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 87, 163, 0.2);
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 87, 163, 0.3);
 }
 
 .blow-text {
@@ -133,18 +176,6 @@ body {
   text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
 }
 
-/* Efecto de soplo detectado */
-.blow-detected .static-flower {
-  animation: shake 0.8s ease-in-out !important;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
-  25% { transform: translateX(-15px) rotate(-8deg) scale(1.1); }
-  50% { transform: translateX(8px) rotate(4deg) scale(0.95); }
-  75% { transform: translateX(-8px) rotate(-4deg) scale(1.05); }
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .blow-text { font-size: 42px; }
@@ -157,8 +188,9 @@ body {
   .click-text { font-size: 14px; }
   .instruction-container { padding: 25px 30px; margin: 20px; }
   
-  .static-flower.small img { width: 18px; height: 18px; }
-  .static-flower.medium img { width: 28px; height: 28px; }
-  .static-flower.large img { width: 40px; height: 40px; }
-  .static-flower.xlarge img { width: 50px; height: 50px; }
+  .static-flower.tiny img { width: 12px; height: 12px; }
+  .static-flower.small img { width: 20px; height: 20px; }
+  .static-flower.medium img { width: 32px; height: 32px; }
+  .static-flower.large img { width: 45px; height: 45px; }
+  .static-flower.xlarge img { width: 55px; height: 55px; }
 }
