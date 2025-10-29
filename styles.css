@@ -1,39 +1,109 @@
 /* styles.css */
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
 
+/* Fondo degradado pastel */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #0057A3 0%, #A3D4F7 50%, #F5F9FF 100%);
+  background: #bbdefb;
+  background: -webkit-linear-gradient(top, #3D1A5A, #6B3F8F, #8C5FB2, #BCA3D9, #F5D76E);
+  background: linear-gradient(to bottom, #3D1A5A, #6B3F8F, #8C5FB2, #BCA3D9, #F5D76E);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  min-height: 100vh;
 }
 
-/* Bloque introductorio - PANTALLA COMPLETA DE FLORES */
-#block-intro {
+/* Bloques de la página */
+.block {
   min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 20px;
+  padding-top: 40px;
+}
+
+#block-intro {
+  justify-content: center;
+  padding-top: 0;
   position: relative;
   overflow: hidden;
 }
 
-/* Imagen principal - SIN ESQUINAS */
+/* Imagen principal - MISMO ESTILO QUE TU PÁGINA ANTERIOR */
 .intro-main-image {
+  max-width: 95%;
+  max-height: 65vh;
+  height: auto;
+  display: block;
+  margin: 15px auto;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 5;
+}
+
+/* FLORES ESTÁTICAS - MUCHAS MÁS Y MÁS GRANDES */
+.static-flowers {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  border-radius: 0 !important;
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* Flores estáticas - MUCHAS MÁS FLORES */
-.static-flowers {
+.static-flower {
   position: absolute;
+  pointer-events: none;
+  animation: gentle-float 10s ease-in-out infinite;
+}
+
+.static-flower img {
+  opacity: 0.9;
+  filter: drop-shadow(0 0 15px rgba(255,255,255,0.5));
+}
+
+/* Diferentes tamaños - MUCHAS MÁS FLORES Y MÁS GRANDES */
+.static-flower.tiny img {
+  width: 25px;
+  height: 25px;
+}
+
+.static-flower.small img {
+  width: 40px;
+  height: 40px;
+}
+
+.static-flower.medium img {
+  width: 60px;
+  height: 60px;
+}
+
+.static-flower.large img {
+  width: 80px;
+  height: 80px;
+}
+
+.static-flower.xlarge img {
+  width: 100px;
+  height: 100px;
+}
+
+.static-flower.xxlarge img {
+  width: 120px;
+  height: 120px;
+}
+
+/* Lluvia de flores - MUY DENSA */
+.flower-rain {
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -42,155 +112,246 @@ body {
   z-index: 2;
 }
 
-.static-flower {
-  position: absolute;
-  pointer-events: none;
-  animation: float 8s ease-in-out infinite;
-}
-
-.static-flower img {
-  opacity: 0.9;
-  filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
-}
-
-/* Diferentes tamaños - MÁS VARIEDAD Y MÁS FLORES */
-.static-flower.tiny img {
-  width: 15px;
-  height: 15px;
-}
-
-.static-flower.small img {
-  width: 25px;
-  height: 25px;
-}
-
-.static-flower.medium img {
-  width: 40px;
-  height: 40px;
-}
-
-.static-flower.large img {
-  width: 55px;
-  height: 55px;
-}
-
-.static-flower.xlarge img {
-  width: 70px;
-  height: 70px;
-}
-
-/* Lluvia de flores - MÁS DENSA */
-.flower-rain {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 3;
-}
-
 .falling-flower {
   position: absolute;
-  top: -50px;
+  top: -100px;
   pointer-events: none;
-  animation: fall linear infinite;
+  animation: gentle-fall linear infinite;
 }
 
 .falling-flower img {
   opacity: 0.8;
 }
 
-@keyframes float {
+@keyframes gentle-float {
   0%, 100% { 
     transform: translateY(0px) rotate(0deg) scale(1); 
   }
-  25% { 
-    transform: translateY(-8px) rotate(2deg) scale(1.02); 
+  33% { 
+    transform: translateY(-5px) rotate(1deg) scale(1.01); 
   }
-  75% { 
-    transform: translateY(4px) rotate(-1deg) scale(0.98); 
+  66% { 
+    transform: translateY(3px) rotate(-0.5deg) scale(0.99); 
   }
 }
 
-@keyframes fall {
+@keyframes gentle-fall {
   to {
-    transform: translateY(100vh) rotate(360deg);
+    transform: translateY(100vh) rotate(180deg);
   }
 }
 
-/* ANIMACIÓN DE SOPLO - SUAVE COMO VIENTO */
-@keyframes blow-effect {
+/* ANIMACIÓN DE SOPLO SUAVE - COMO VIENTO REAL */
+@keyframes blow-gentle {
   0% {
-    transform: translateX(0px) translateY(0px) rotate(0deg);
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+    opacity: 0.9;
   }
-  20% {
-    transform: translateX(8px) translateY(-5px) rotate(3deg);
+  25% {
+    transform: translateX(15px) translateY(-8px) rotate(2deg) scale(1.02);
+    opacity: 0.8;
   }
-  40% {
-    transform: translateX(25px) translateY(-12px) rotate(8deg);
+  50% {
+    transform: translateX(35px) translateY(-15px) rotate(4deg) scale(1.05);
+    opacity: 0.7;
   }
-  60% {
-    transform: translateX(45px) translateY(-8px) rotate(12deg);
-  }
-  80% {
-    transform: translateX(60px) translateY(-3px) rotate(10deg);
+  75% {
+    transform: translateX(60px) translateY(-10px) rotate(3deg) scale(1.03);
+    opacity: 0.6;
   }
   100% {
-    transform: translateX(80px) translateY(2px) rotate(5deg);
+    transform: translateX(100px) translateY(-5px) rotate(1deg) scale(1.01);
+    opacity: 0.4;
   }
 }
 
 .blow-detected .static-flower {
-  animation: blow-effect 2.5s ease-out forwards !important;
+  animation: blow-gentle 3s ease-out forwards !important;
 }
 
-/* Instrucciones - SOBRE TODO */
+/* Instrucciones */
 .instruction-container {
+  margin-bottom: 30px;
   text-align: center;
   z-index: 100;
   position: relative;
-  background: rgba(245, 249, 255, 0.2);
-  backdrop-filter: blur(20px);
-  padding: 40px 50px;
-  border-radius: 25px;
-  border: 2px solid rgba(212, 175, 55, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 87, 163, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  padding: 25px 35px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .blow-text {
   font-family: 'Dancing Script', cursive;
-  font-size: 52px;
+  font-size: 42px;
   font-weight: 700;
-  color: #0057A3;
-  text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+  color: #FFFFFF;
   margin-bottom: 8px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .click-text {
   font-family: 'Arial', sans-serif;
-  font-size: 18px;
-  color: #0057A3;
-  font-weight: 500;
+  font-size: 16px;
+  color: #FFFFFF;
   opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
-/* Responsive */
+/* Ocultar bloques */
+.hidden {
+  display: none !important;
+}
+
+/* Media queries para diferentes dispositivos */
 @media (max-width: 768px) {
-  .blow-text { font-size: 42px; }
-  .click-text { font-size: 16px; }
-  .instruction-container { padding: 30px 40px; }
+  .intro-main-image {
+    max-width: 98%;
+    max-height: 55vh;
+    margin: 10px auto;
+  }
+  
+  .blow-text {
+    font-size: 36px;
+  }
+  
+  .click-text {
+    font-size: 14px;
+  }
+  
+  .instruction-container {
+    padding: 20px 30px;
+    margin-bottom: 20px;
+  }
+  
+  .static-flower.tiny img { width: 20px; height: 20px; }
+  .static-flower.small img { width: 35px; height: 35px; }
+  .static-flower.medium img { width: 50px; height: 50px; }
+  .static-flower.large img { width: 65px; height: 65px; }
+  .static-flower.xlarge img { width: 80px; height: 80px; }
+  .static-flower.xxlarge img { width: 95px; height: 95px; }
 }
 
 @media (max-width: 480px) {
-  .blow-text { font-size: 36px; }
-  .click-text { font-size: 14px; }
-  .instruction-container { padding: 25px 30px; margin: 20px; }
+  .intro-main-image {
+    max-width: 98%;
+    max-height: 50vh;
+  }
   
-  .static-flower.tiny img { width: 12px; height: 12px; }
-  .static-flower.small img { width: 20px; height: 20px; }
-  .static-flower.medium img { width: 32px; height: 32px; }
-  .static-flower.large img { width: 45px; height: 45px; }
-  .static-flower.xlarge img { width: 55px; height: 55px; }
+  .blow-text {
+    font-size: 32px;
+  }
+  
+  .click-text {
+    font-size: 13px;
+  }
+  
+  .instruction-container {
+    padding: 15px 25px;
+    margin: 15px;
+  }
+  
+  .static-flower.tiny img { width: 18px; height: 18px; }
+  .static-flower.small img { width: 30px; height: 30px; }
+  .static-flower.medium img { width: 45px; height: 45px; }
+  .static-flower.large img { width: 55px; height: 55px; }
+  .static-flower.xlarge img { width: 65px; height: 65px; }
+  .static-flower.xxlarge img { width: 75px; height: 75px; }
 }
+
+/* MANTÉN TODOS TUS ESTILOS EXISTENTES PARA EL BLOQUE 2 */
+#block-invitation {
+  justify-content: flex-start;
+  padding-top: 30px;
+}
+
+.countdown-container {
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 95%;
+}
+
+.countdown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.time-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 45px;
+}
+
+.time-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #8C5FB2;
+  background: #fff;
+  padding: 8px;
+  border-radius: 10px;
+  min-width: 45px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.time-label {
+  font-size: 0.7rem;
+  color: #5d4037;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.separator {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #5d4037;
+  margin: 0 2px;
+}
+
+.location-container {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 95%;
+}
+
+.location-button {
+  background: linear-gradient(135deg, #8C5FB2, #6B3F8F);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+  transition: all 0.3s ease;
+  font-family: 'Dancing Script', cursive;
+  width: 100%;
+  max-width: 100%;
+}
+
+.invitation-img {
+  max-width: 95%;
+  max-height: 65vh;
+  height: auto;
+  display: block;
+  margin: 15px auto;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Mantén todos tus otros estilos existentes... */
