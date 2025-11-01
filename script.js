@@ -197,3 +197,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mantén tu código existente para cuenta regresiva, carruseles, etc.
 });
 
+
