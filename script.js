@@ -7,12 +7,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const flowerRainContainer = document.getElementById('flower-rain');
   const flowerRainMainContainer = document.getElementById('flower-rain-main');
   
+  // Elementos del contador
+  const daysElement = document.getElementById('days');
+  const hoursElement = document.getElementById('hours');
+  const minutesElement = document.getElementById('minutes');
+  const secondsElement = document.getElementById('seconds');
+  
+  // Fecha objetivo: 18 de DICIEMBRE de 2025
+  const targetDate = new Date(2025, 11, 18, 0, 0, 0);
+  
   let audioContext;
   let analyser;
   let microphone;
   let isBlowDetected = false;
   let blowDetectionActive = false;
 
+  // Función para actualizar la cuenta regresiva
+  function updateCountdown() {
+    const now = new Date();
+    const difference = targetDate - now;
+    
+    if (difference <= 0) {
+      daysElement.textContent = '00';
+      hoursElement.textContent = '00';
+      minutesElement.textContent = '00';
+      secondsElement.textContent = '00';
+      return;
+    }
+    
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    
+    daysElement.textContent = days.toString().padStart(2, '0');
+    hoursElement.textContent = hours.toString().padStart(2, '0');
+    minutesElement.textContent = minutes.toString().padStart(2, '0');
+    secondsElement.textContent = seconds.toString().padStart(2, '0');
+  }
+  
   // Inicializar FLORES MUY DENSAS
   function initializeStaticFlowers() {
     const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
@@ -190,11 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeFlowerRain(flowerRainMainContainer);
     setupClickInteraction();
     initBlowDetection();
+    
+    // Iniciar contador
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
   }
 
   init();
 
-  // Mantén tu código existente para cuenta regresiva, carruseles, etc.
+  // Mantén tu código existente para carruseles, etc.
 });
-
-
