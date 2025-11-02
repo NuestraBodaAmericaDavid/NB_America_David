@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Crear flores MUY FRECUENTEMENTE
-    setInterval(createFallingFlower, 100);
+    setInterval(createFallingFlower, 250);
     
     // Crear muchas flores iniciales
     for (let i = 0; i < 40; i++) {
@@ -309,3 +309,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   init();
 });
+
