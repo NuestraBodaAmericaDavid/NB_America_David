@@ -19,23 +19,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
 
-  // Función para reproducir música - OPTIMIZADA PARA MÓVILES
+  // Función para reproducir música
   function playMusic() {
     if (backgroundMusic) {
-      console.log('Intentando reproducir música...');
-      // Configurar la música
+      console.log('Reproduciendo música...');
       backgroundMusic.volume = 0.6;
       backgroundMusic.muted = false;
       
-      // Intentar reproducir
       const playPromise = backgroundMusic.play();
       
       if (playPromise !== undefined) {
         playPromise.then(() => {
           console.log('Música reproducida exitosamente');
         }).catch(error => {
-          console.log('Error en reproducción automática:', error);
-          // Intentar de nuevo después de un breve delay
+          console.log('Error en reproducción:', error);
           setTimeout(() => {
             backgroundMusic.play().catch(e => {
               console.log('Segundo intento fallido:', e);
@@ -70,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     secondsElement.textContent = seconds.toString().padStart(2, '0');
   }
   
-  // DETECCIÓN DE AGITADO (SHAKE) - CORREGIDA
+  // DETECCIÓN DE AGITADO - SIMULA CLICK CUANDO SE DETECTA
   function initShakeDetection() {
     if (!window.DeviceMotionEvent) {
       console.log('Dispositivo no soporta detección de movimiento');
@@ -82,138 +79,87 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastX = null, lastY = null, lastZ = null;
     let moveCounter = 0;
     const shakeThreshold = 15;
-    let isRequestingPermission = false;
+
+    // Función para simular un click
+    function simulateClick() {
+      console.log('¡Agitado detectado! Simulando click...');
+      
+      // Crear y disparar un evento de click
+      const clickEvent = new MouseEvent('click', {
+        view: window,
+        bubbles: true,
+        cancelable: true
+      });
+      
+      // Disparar el click en el documento
+      document.dispatchEvent(clickEvent);
+      
+      // También disparar un touchstart para móviles
+      const touchEvent = new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        touches: [new Touch({
+          identifier: Date.now(),
+          target: document.body,
+          clientX: window.innerWidth / 2,
+          clientY: window.innerHeight / 2
+        })]
+      });
+      
+      document.dispatchEvent(touchEvent);
+    }
 
     // Función para iniciar la detección de movimiento
     function startMotionDetection() {
-      console.log('Iniciando sensor de movimiento...');
+      console.log('Sensor de movimiento activado');
       
-      window.addEventListener('devicemotion', handleDeviceMotion);
-      
-      // También agregar detección de orientación como fallback
-      window.addEventListener('deviceorientation', handleDeviceOrientation);
-    }
-
-    // Manejar datos del acelerómetro
-    function handleDeviceMotion(event) {
-      if (!shakeDetectionActive || isInteractionDetected) return;
-      
-      const acceleration = event.accelerationIncludingGravity;
-      if (!acceleration) return;
-      
-      const { x, y, z } = acceleration;
-      
-      if (lastX === null || lastY === null || lastZ === null) {
+      window.addEventListener('devicemotion', (event) => {
+        if (!shakeDetectionActive || isInteractionDetected) return;
+        
+        const acceleration = event.accelerationIncludingGravity;
+        if (!acceleration) return;
+        
+        const { x, y, z } = acceleration;
+        
+        if (lastX === null || lastY === null || lastZ === null) {
+          lastX = x;
+          lastY = y;
+          lastZ = z;
+          return;
+        }
+        
+        const deltaX = Math.abs(x - lastX);
+        const deltaY = Math.abs(y - lastY);
+        const deltaZ = Math.abs(z - lastZ);
+        
+        const totalMovement = deltaX + deltaY + deltaZ;
+        
+        if (totalMovement > shakeThreshold) {
+          moveCounter++;
+          console.log(`Movimiento detectado! Fuerza: ${totalMovement.toFixed(2)}, Contador: ${moveCounter}`);
+          
+          if (moveCounter >= 2) { // Solo necesita 2 movimientos fuertes
+            simulateClick(); // ¡SIMULAR CLICK!
+            moveCounter = 0; // Resetear contador
+          }
+        } else {
+          moveCounter = Math.max(0, moveCounter - 0.2);
+        }
+        
         lastX = x;
         lastY = y;
         lastZ = z;
-        return;
-      }
-      
-      const deltaX = Math.abs(x - lastX);
-      const deltaY = Math.abs(y - lastY);
-      const deltaZ = Math.abs(z - lastZ);
-      
-      console.log(`Movimiento detectado - X: ${deltaX.toFixed(2)}, Y: ${deltaY.toFixed(2)}, Z: ${deltaZ.toFixed(2)}`);
-      
-      if (deltaX + deltaY + deltaZ > shakeThreshold) {
-        moveCounter++;
-        console.log(`Movimiento fuerte detectado! Contador: ${moveCounter}`);
-        
-        if (moveCounter >= 3) { // Reducido para mayor sensibilidad
-          console.log('¡Agitado detectado! Activando música...');
-          handleInteractionDetected();
-        }
-      } else {
-        moveCounter = Math.max(0, moveCounter - 0.1); // Reducir más lentamente
-      }
-      
-      lastX = x;
-      lastY = y;
-      lastZ = z;
+      });
     }
 
-    // Manejar orientación como fallback
-    function handleDeviceOrientation(event) {
-      if (!shakeDetectionActive || isInteractionDetected) return;
-      
-      const { beta, gamma } = event; // beta: inclinación front-back, gamma: inclinación left-right
-      
-      // Detectar cambios bruscos en la orientación
-      if (Math.abs(beta) > 45 || Math.abs(gamma) > 45) {
-        moveCounter++;
-        console.log(`Inclinación detectada! Contador: ${moveCounter}`);
-        
-        if (moveCounter >= 2) {
-          console.log('¡Inclinación fuerte detectada! Activando música...');
-          handleInteractionDetected();
-        }
-      }
-    }
-
-    // Pedir permiso para iOS
+    // Para iOS - pedir permiso
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      console.log('Solicitando permiso para sensor de movimiento...');
+      console.log('iOS detectado - solicitando permiso...');
       
-      // Crear un botón overlay para pedir permiso en iOS
-      const permissionOverlay = document.createElement('div');
-      permissionOverlay.innerHTML = `
-        <div style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 87, 163, 0.95);
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          z-index: 10000;
-          color: white;
-          font-family: Arial, sans-serif;
-          text-align: center;
-          padding: 20px;
-          backdrop-filter: blur(10px);
-        ">
-          <div style="
-            background: rgba(245, 249, 255, 0.1);
-            backdrop-filter: blur(15px);
-            padding: 30px;
-            border-radius: 20px;
-            border: 2px solid #D4AF37;
-            max-width: 400px;
-          ">
-            <h2 style="font-family: 'Dancing Script', cursive; font-size: 2rem; margin-bottom: 15px; color: #D4AF37;">
-              Permiso para Agitar
-            </h2>
-            <p style="font-size: 1rem; margin-bottom: 25px; line-height: 1.5;">
-              Para usar la función de "agitar", necesitamos acceso al sensor de movimiento de tu dispositivo.
-            </p>
-            <button id="grant-permission-btn" style="
-              background: linear-gradient(135deg, #D4AF37, #FFD700);
-              color: #0057A3;
-              border: none;
-              padding: 12px 25px;
-              font-size: 1.1rem;
-              font-weight: bold;
-              border-radius: 50px;
-              cursor: pointer;
-              font-family: 'Dancing Script', cursive;
-              width: 100%;
-            ">
-              Permitir Sensor de Movimiento
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(permissionOverlay);
-      
-      document.getElementById('grant-permission-btn').addEventListener('click', function() {
+      // Esperar un momento y luego pedir permiso automáticamente
+      setTimeout(() => {
         DeviceMotionEvent.requestPermission()
           .then(permissionState => {
-            permissionOverlay.remove();
             if (permissionState === 'granted') {
               console.log('Permiso concedido para sensor de movimiento');
               startMotionDetection();
@@ -223,48 +169,30 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .catch(error => {
             console.log('Error al solicitar permiso:', error);
-            permissionOverlay.remove();
           });
-      });
+      }, 1000);
     } else {
-      // Para Android y otros navegadores que no requieren permiso
-      console.log('Iniciando detección sin necesidad de permiso...');
+      // Para Android y otros navegadores
+      console.log('Iniciando detección sin permiso...');
       startMotionDetection();
     }
 
-    // Fallback para desktop - tecla espacio y movimiento de mouse rápido
+    // Fallback para desktop - tecla espacio simula click
     document.addEventListener('keydown', (e) => {
       if (!shakeDetectionActive || isInteractionDetected) return;
       
       if (e.code === 'Space' || e.key === ' ') {
-        console.log('Tecla espacio presionada - simulando agitado');
-        handleInteractionDetected();
+        console.log('Tecla espacio - simulando click');
+        simulateClick();
       }
-    });
-
-    // Detectar movimiento rápido de mouse como agitado en desktop
-    let lastMouseMove = Date.now();
-    document.addEventListener('mousemove', () => {
-      if (!shakeDetectionActive || isInteractionDetected) return;
-      
-      const now = Date.now();
-      if (now - lastMouseMove < 100) { // Movimiento muy rápido
-        moveCounter++;
-        console.log('Movimiento rápido de mouse detectado');
-        
-        if (moveCounter >= 3) {
-          console.log('¡Movimiento de mouse detectado como agitado!');
-          handleInteractionDetected();
-        }
-      }
-      lastMouseMove = now;
     });
   }
 
+  // FUNCIÓN PRINCIPAL QUE SE EJECUTA CON CLICK O SHAKE
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
-    console.log('Interacción detectada, activando efectos...');
+    console.log('Interacción detectada (click o shake)');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
@@ -279,8 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: "back.out(1.7)"
     });
     
-    // Reproducir música - IMPORTANTE: esto se ejecuta tanto para click como para shake
-    console.log('Reproduciendo música...');
+    // Reproducir música - ESTO SE EJECUTA TANTO PARA CLICK COMO PARA SHAKE
     playMusic();
     
     // Transición después de la animación
@@ -302,17 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
     const sizes = ['tiny', 'small', 'medium', 'large', 'xlarge', 'xxlarge'];
     
-    // Crear 200 flores estáticas - ¡MUCHÍSIMAS MÁS!
     for (let i = 0; i < 200; i++) {
       const flower = document.createElement('div');
       const size = sizes[Math.floor(Math.random() * sizes.length)];
       flower.className = `static-flower ${size}`;
       
-      // Posición aleatoria en TODA la pantalla
       const top = Math.random() * 100;
       const left = Math.random() * 100;
-      
-      // Tipo de flor aleatorio
       const flowerType = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
       
       flower.style.top = `${top}%`;
@@ -320,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
       flower.style.opacity = 0.7 + Math.random() * 0.3;
       flower.innerHTML = `<img src="./media/${flowerType}" alt="Flor">`;
       
-      // Animación delay y duración aleatoria
       flower.style.animationDelay = `${Math.random() * 12}s`;
       flower.style.animationDuration = `${8 + Math.random() * 8}s`;
       
@@ -356,23 +278,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }, duration * 1000);
     }
     
-    // Crear flores MUY FRECUENTEMENTE
     setInterval(createFallingFlower, 100);
     
-    // Crear muchas flores iniciales
     for (let i = 0; i < 40; i++) {
       setTimeout(createFallingFlower, i * 50);
     }
   }
 
-  // CLICK FUNCIONAL
+  // CLICK FUNCIONAL - ESTA ES LA FUNCIÓN QUE SE EJECUTA CON CLICK REAL O SIMULADO
   function setupClickInteraction() {
     document.addEventListener('click', handleClick);
     document.addEventListener('touchstart', handleClick);
     
     function handleClick(e) {
       if (!isInteractionDetected) {
-        console.log('Click detectado, activando...');
+        console.log('Click real o simulado detectado');
         if (shakeDetectionActive) {
           shakeDetectionActive = false;
         }
@@ -381,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // CARRUSEL SIMPLIFICADO - PARA MÚLTIPLES CARRUSELES
+  // CARRUSEL SIMPLIFICADO
   function initialize3DCarousel() {
     const carousels = document.querySelectorAll('.carousel-3d-container');
     
@@ -394,23 +314,18 @@ document.addEventListener('DOMContentLoaded', () => {
       let currentSlide = 0;
       let rotationInterval;
       
-      // Actualizar clases de los slides
       function updateSlides() {
         slides.forEach((slide, index) => {
-          // Remover todas las clases
           slide.classList.remove('active', 'prev', 'next', 'far-prev', 'far-next');
           
-          // Calcular la posición relativa
           let diff = index - currentSlide;
           
-          // Ajustar para el carrusel circular
           if (diff < -Math.floor(totalSlides / 2)) {
             diff += totalSlides;
           } else if (diff > Math.floor(totalSlides / 2)) {
             diff -= totalSlides;
           }
           
-          // Asignar clases según la posición
           if (diff === 0) {
             slide.classList.add('active');
           } else if (diff === -1 || (diff === totalSlides - 1 && currentSlide === 0)) {
@@ -425,24 +340,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
       
-      // Cambiar al siguiente slide
       function nextSlide() {
         currentSlide = (currentSlide + 1) % totalSlides;
         updateSlides();
       }
       
-      // Inicializar
       updateSlides();
       
-      // Limpiar intervalo anterior si existe
       if (rotationInterval) {
         clearInterval(rotationInterval);
       }
       
-      // Rotación automática cada 4 segundos (más tiempo)
       rotationInterval = setInterval(nextSlide, 4000);
       
-      // Pausar rotación cuando la página no está visible
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
           clearInterval(rotationInterval);
@@ -458,8 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeStaticFlowers();
     initializeFlowerRain(flowerRainContainer);
     initializeFlowerRain(flowerRainMainContainer);
-    setupClickInteraction();
-    initShakeDetection();
+    setupClickInteraction(); // Esta función maneja tanto clicks reales como simulados
+    initShakeDetection(); // Esta función simula clicks cuando detecta shake
     
     // Iniciar contador
     updateCountdown();
