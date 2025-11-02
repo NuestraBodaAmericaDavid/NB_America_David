@@ -18,190 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
-  let musicStarted = false;
-  let musicOverlayShown = false;
-
-  // Función para reproducir música - MEJORADA PARA MÓVILES
-  function playMusic() {
-    if (musicStarted) return;
-    
-    if (backgroundMusic) {
-      // Configurar música
-      backgroundMusic.volume = 0.6;
-      
-      // Intentar reproducir
-      const playPromise = backgroundMusic.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('Música reproducida exitosamente');
-          musicStarted = true;
-          // Remover overlay si existe
-          const existingOverlay = document.getElementById('music-activation-overlay');
-          if (existingOverlay) {
-            existingOverlay.remove();
-          }
-        }).catch(error => {
-          console.log('Error reproduciendo música:', error);
-          // En móviles, mostrar overlay para activación manual
-          if (!musicOverlayShown) {
-            showMusicActivationOverlay();
-          }
-        });
-      }
-    }
-  }
-
-  // Mostrar overlay para activación de música
-  function showMusicActivationOverlay() {
-    if (musicOverlayShown) return;
-    
-    musicOverlayShown = true;
-    
-    // Crear un botón overlay para activar música
-    const musicOverlay = document.createElement('div');
-    musicOverlay.id = 'music-activation-overlay';
-    musicOverlay.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 87, 163, 0.95);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding: 20px;
-        backdrop-filter: blur(10px);
-      ">
-        <div style="
-          background: rgba(245, 249, 255, 0.1);
-          backdrop-filter: blur(15px);
-          padding: 40px 30px;
-          border-radius: 20px;
-          border: 2px solid #D4AF37;
-          max-width: 400px;
-          width: 90%;
-        ">
-          <h2 style="font-family: 'Dancing Script', cursive; font-size: 2.5rem; margin-bottom: 20px; color: #D4AF37;">
-            🎵 Activar Música 🎵
-          </h2>
-          <p style="font-size: 1.1rem; margin-bottom: 30px; line-height: 1.5;">
-            Para una experiencia completa, activa la música de fondo tocando el botón below
-          </p>
-          <button id="activate-music-btn" style="
-            background: linear-gradient(135deg, #D4AF37, #FFD700);
-            color: #0057A3;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            font-family: 'Dancing Script', cursive;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-            width: 100%;
-          ">
-            Activar Música
-          </button>
-          <button id="skip-music-btn" style="
-            background: transparent;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            padding: 12px 25px;
-            font-size: 1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-          ">
-            Continuar sin música
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(musicOverlay);
-    
-    // Agregar event listeners
-    document.getElementById('activate-music-btn').addEventListener('click', activateMusic);
-    document.getElementById('skip-music-btn').addEventListener('click', skipMusic);
-    
-    // Agregar estilos para hover
-    const activateBtn = document.getElementById('activate-music-btn');
-    const skipBtn = document.getElementById('skip-music-btn');
-    
-    activateBtn.addEventListener('mouseenter', () => {
-      activateBtn.style.transform = 'translateY(-2px)';
-      activateBtn.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.6)';
-    });
-    
-    activateBtn.addEventListener('mouseleave', () => {
-      activateBtn.style.transform = 'translateY(0)';
-      activateBtn.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-    });
-    
-    skipBtn.addEventListener('mouseenter', () => {
-      skipBtn.style.background = 'rgba(255, 255, 255, 0.1)';
-      skipBtn.style.borderColor = '#D4AF37';
-    });
-    
-    skipBtn.addEventListener('mouseleave', () => {
-      skipBtn.style.background = 'transparent';
-      skipBtn.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-    });
-  }
-
-  // Función para activar música
-  function activateMusic() {
-    if (musicStarted) return;
-    
-    backgroundMusic.play().then(() => {
-      console.log('Música activada por usuario');
-      musicStarted = true;
-      const musicOverlay = document.getElementById('music-activation-overlay');
-      if (musicOverlay) {
-        musicOverlay.remove();
-      }
-    }).catch(error => {
-      console.log('Error al activar música:', error);
-      // Si falla, mostrar mensaje de error
-      const activateBtn = document.getElementById('activate-music-btn');
-      const message = document.querySelector('#music-activation-overlay p');
-      if (activateBtn && message) {
-        activateBtn.textContent = '❌ Error al activar';
-        activateBtn.style.background = '#ff4444';
-        message.textContent = 'El navegador no permite la reproducción. Verifica que el sonido esté activado y intenta nuevamente.';
-        message.style.color = '#ff6b6b';
-        
-        // Resetear después de 3 segundos
-        setTimeout(() => {
-          activateBtn.textContent = 'Intentar nuevamente';
-          activateBtn.style.background = 'linear-gradient(135deg, #D4AF37, #FFD700)';
-          message.textContent = 'Para una experiencia completa, activa la música de fondo tocando el botón below';
-          message.style.color = 'white';
-        }, 3000);
-      }
-    });
-  }
-
-  // Función para saltar música
-  function skipMusic() {
-    console.log('Usuario eligió continuar sin música');
-    musicStarted = true; // Marcar como iniciada para no mostrar de nuevo
-    const musicOverlay = document.getElementById('music-activation-overlay');
-    if (musicOverlay) {
-      musicOverlay.remove();
-    }
-  }
 
   // Función para actualizar la cuenta regresiva
   function updateCountdown() {
@@ -374,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Crear flores MUY FRECUENTEMENTE
-    setInterval(createFallingFlower, 200);
+    setInterval(createFallingFlower, 100);
     
     // Crear muchas flores iniciales
     for (let i = 0; i < 40; i++) {
@@ -382,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // CLICK FUNCIONAL - CORREGIDO
+  // CLICK FUNCIONAL
   function setupClickInteraction() {
     document.addEventListener('click', handleClick);
     document.addEventListener('touchstart', handleClick);
@@ -394,6 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         handleInteractionDetected();
       }
+    }
+  }
+
+  function playMusic() {
+    if (backgroundMusic) {
+      backgroundMusic.volume = 0.6;
+      backgroundMusic.play().catch(error => {
+        console.log('Error reproduciendo música:', error);
+      });
     }
   }
 
@@ -480,13 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Iniciar contador
     updateCountdown();
     setInterval(updateCountdown, 1000);
-    
-    // Intentar reproducir música automáticamente (para desktop)
-    setTimeout(() => {
-      if (!musicStarted) {
-        playMusic();
-      }
-    }, 1000);
   }
 
   init();
