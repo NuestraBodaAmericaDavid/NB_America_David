@@ -21,25 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Función para reproducir música
   function playMusic() {
-    if (backgroundMusic) {
-      console.log('Reproduciendo música...');
+    if (backgroundMusic && !backgroundMusic.playing) {
+      console.log('🔊 REPRODUCIENDO MÚSICA...');
       backgroundMusic.volume = 0.6;
       backgroundMusic.muted = false;
       
-      const playPromise = backgroundMusic.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('Música reproducida exitosamente');
-        }).catch(error => {
-          console.log('Error en reproducción:', error);
-          setTimeout(() => {
-            backgroundMusic.play().catch(e => {
-              console.log('Segundo intento fallido:', e);
-            });
-          }, 500);
-        });
-      }
+      // Forzar la reproducción
+      backgroundMusic.play().then(() => {
+        console.log('✅ Música reproducida exitosamente');
+        backgroundMusic.playing = true;
+      }).catch(error => {
+        console.log('❌ Error reproduciendo música:', error);
+        // Intentar de nuevo
+        setTimeout(() => {
+          backgroundMusic.play().then(() => {
+            backgroundMusic.playing = true;
+          });
+        }, 300);
+      });
     }
   }
 
@@ -67,139 +66,84 @@ document.addEventListener('DOMContentLoaded', () => {
     secondsElement.textContent = seconds.toString().padStart(2, '0');
   }
   
-  // DETECCIÓN DE AGITADO - SIMULA CLICK CUANDO SE DETECTA
+  // DETECCIÓN DE AGITADO - VERSIÓN SUPER SIMPLE
   function initShakeDetection() {
     if (!window.DeviceMotionEvent) {
-      console.log('Dispositivo no soporta detección de movimiento');
+      console.log('❌ Dispositivo no soporta detección de movimiento');
       return;
     }
     
-    console.log('Iniciando detección de agitado...');
+    console.log('📱 Iniciando detección de agitado...');
     
-    let lastX = null, lastY = null, lastZ = null;
-    let moveCounter = 0;
-    const shakeThreshold = 15;
-
-    // Función para simular un click
-    function simulateClick() {
-      console.log('¡Agitado detectado! Simulando click...');
-      
-      // Crear y disparar un evento de click
-      const clickEvent = new MouseEvent('click', {
-        view: window,
-        bubbles: true,
-        cancelable: true
-      });
-      
-      // Disparar el click en el documento
-      document.dispatchEvent(clickEvent);
-      
-      // También disparar un touchstart para móviles
-      const touchEvent = new TouchEvent('touchstart', {
-        bubbles: true,
-        cancelable: true,
-        touches: [new Touch({
-          identifier: Date.now(),
-          target: document.body,
-          clientX: window.innerWidth / 2,
-          clientY: window.innerHeight / 2
-        })]
-      });
-      
-      document.dispatchEvent(touchEvent);
+    let lastAcceleration = null;
+    
+    // Pedir permiso para iOS
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      console.log('🍎 iOS detectado - solicitando permiso...');
+      DeviceMotionEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            startShakeDetection();
+          }
+        })
+        .catch(console.error);
+    } else {
+      startShakeDetection();
     }
-
-    // Función para iniciar la detección de movimiento
-    function startMotionDetection() {
-      console.log('Sensor de movimiento activado');
-      
+    
+    function startShakeDetection() {
       window.addEventListener('devicemotion', (event) => {
         if (!shakeDetectionActive || isInteractionDetected) return;
         
         const acceleration = event.accelerationIncludingGravity;
         if (!acceleration) return;
         
-        const { x, y, z } = acceleration;
-        
-        if (lastX === null || lastY === null || lastZ === null) {
-          lastX = x;
-          lastY = y;
-          lastZ = z;
+        if (!lastAcceleration) {
+          lastAcceleration = {
+            x: acceleration.x,
+            y: acceleration.y,
+            z: acceleration.z
+          };
           return;
         }
         
-        const deltaX = Math.abs(x - lastX);
-        const deltaY = Math.abs(y - lastY);
-        const deltaZ = Math.abs(z - lastZ);
+        // Calcular diferencia
+        const deltaX = Math.abs(acceleration.x - lastAcceleration.x);
+        const deltaY = Math.abs(acceleration.y - lastAcceleration.y);
+        const deltaZ = Math.abs(acceleration.z - lastAcceleration.z);
         
         const totalMovement = deltaX + deltaY + deltaZ;
         
-        if (totalMovement > shakeThreshold) {
-          moveCounter++;
-          console.log(`Movimiento detectado! Fuerza: ${totalMovement.toFixed(2)}, Contador: ${moveCounter}`);
-          
-          if (moveCounter >= 2) { // Solo necesita 2 movimientos fuertes
-            simulateClick(); // ¡SIMULAR CLICK!
-            moveCounter = 0; // Resetear contador
-          }
-        } else {
-          moveCounter = Math.max(0, moveCounter - 0.2);
+        // Umbral más bajo para mayor sensibilidad
+        if (totalMovement > 20) {
+          console.log('🎯 SHAKE DETECTADO! Movimiento:', totalMovement.toFixed(2));
+          handleShakeDetected();
         }
         
-        lastX = x;
-        lastY = y;
-        lastZ = z;
+        lastAcceleration = {
+          x: acceleration.x,
+          y: acceleration.y,
+          z: acceleration.z
+        };
       });
     }
-
-    // Para iOS - pedir permiso
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      console.log('iOS detectado - solicitando permiso...');
-      
-      // Esperar un momento y luego pedir permiso automáticamente
-      setTimeout(() => {
-        DeviceMotionEvent.requestPermission()
-          .then(permissionState => {
-            if (permissionState === 'granted') {
-              console.log('Permiso concedido para sensor de movimiento');
-              startMotionDetection();
-            } else {
-              console.log('Permiso denegado para sensor de movimiento');
-            }
-          })
-          .catch(error => {
-            console.log('Error al solicitar permiso:', error);
-          });
-      }, 1000);
-    } else {
-      // Para Android y otros navegadores
-      console.log('Iniciando detección sin permiso...');
-      startMotionDetection();
-    }
-
-    // Fallback para desktop - tecla espacio simula click
-    document.addEventListener('keydown', (e) => {
-      if (!shakeDetectionActive || isInteractionDetected) return;
-      
-      if (e.code === 'Space' || e.key === ' ') {
-        console.log('Tecla espacio - simulando click');
-        simulateClick();
-      }
-    });
   }
 
-  // FUNCIÓN PRINCIPAL QUE SE EJECUTA CON CLICK O SHAKE
-  function handleInteractionDetected() {
+  // FUNCIÓN ESPECÍFICA PARA SHAKE
+  function handleShakeDetected() {
     if (isInteractionDetected) return;
     
-    console.log('Interacción detectada (click o shake)');
+    console.log('🚀 EJECUTANDO handleShakeDetected()');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
-    // Efecto visual de agitado
+    // 1. PRIMERO reproducir música inmediatamente
+    console.log('🎵 REPRODUCIENDO MÚSICA DESDE SHAKE...');
+    playMusic();
+    
+    // 2. LUEGO los efectos visuales
     blockIntro.classList.add('blow-detected');
     
-    // Animación extra para los anillos
     gsap.to('.rings-image', {
       rotation: 360,
       scale: 1.2,
@@ -207,10 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: "back.out(1.7)"
     });
     
-    // Reproducir música - ESTO SE EJECUTA TANTO PARA CLICK COMO PARA SHAKE
-    playMusic();
-    
-    // Transición después de la animación
+    // Transición
     setTimeout(() => {
       blockIntro.classList.add('hidden');
       blockInvitation.classList.remove('hidden');
@@ -219,12 +160,46 @@ document.addEventListener('DOMContentLoaded', () => {
         { opacity: 1, duration: 1.5 }
       );
       
-      // INICIALIZAR CARRUSEL después de mostrar el bloque
       setTimeout(initialize3DCarousel, 500);
     }, 2000);
   }
 
-  // Inicializar FLORES MUY DENSAS
+  // FUNCIÓN PARA CLICK
+  function handleClickDetected() {
+    if (isInteractionDetected) return;
+    
+    console.log('🖱️ EJECUTANDO handleClickDetected()');
+    isInteractionDetected = true;
+    shakeDetectionActive = false;
+    
+    // 1. PRIMERO reproducir música inmediatamente
+    console.log('🎵 REPRODUCIENDO MÚSICA DESDE CLICK...');
+    playMusic();
+    
+    // 2. LUEGO los efectos visuales
+    blockIntro.classList.add('blow-detected');
+    
+    gsap.to('.rings-image', {
+      rotation: 360,
+      scale: 1.2,
+      duration: 1.5,
+      ease: "back.out(1.7)"
+    });
+    
+    // Transición
+    setTimeout(() => {
+      blockIntro.classList.add('hidden');
+      blockInvitation.classList.remove('hidden');
+      gsap.fromTo(blockInvitation, 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 1.5 }
+      );
+      
+      setTimeout(initialize3DCarousel, 500);
+    }, 2000);
+  }
+
+  // Inicializar FLORES
   function initializeStaticFlowers() {
     const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
     const sizes = ['tiny', 'small', 'medium', 'large', 'xlarge', 'xxlarge'];
@@ -250,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Inicializar lluvia de flores MUY DENSA
+  // Inicializar lluvia de flores
   function initializeFlowerRain(container) {
     const flowerTypes = ['flor-blanca.svg', 'flor-azul.svg'];
     
@@ -285,23 +260,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // CLICK FUNCIONAL - ESTA ES LA FUNCIÓN QUE SE EJECUTA CON CLICK REAL O SIMULADO
+  // CLICK FUNCIONAL
   function setupClickInteraction() {
-    document.addEventListener('click', handleClick);
-    document.addEventListener('touchstart', handleClick);
-    
-    function handleClick(e) {
+    document.addEventListener('click', () => {
       if (!isInteractionDetected) {
-        console.log('Click real o simulado detectado');
-        if (shakeDetectionActive) {
-          shakeDetectionActive = false;
-        }
-        handleInteractionDetected();
+        handleClickDetected();
       }
-    }
+    });
+    
+    document.addEventListener('touchstart', () => {
+      if (!isInteractionDetected) {
+        handleClickDetected();
+      }
+    });
   }
 
-  // CARRUSEL SIMPLIFICADO
+  // CARRUSEL
   function initialize3DCarousel() {
     const carousels = document.querySelectorAll('.carousel-3d-container');
     
@@ -326,17 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
             diff -= totalSlides;
           }
           
-          if (diff === 0) {
-            slide.classList.add('active');
-          } else if (diff === -1 || (diff === totalSlides - 1 && currentSlide === 0)) {
-            slide.classList.add('prev');
-          } else if (diff === 1 || (diff === -totalSlides + 1 && currentSlide === totalSlides - 1)) {
-            slide.classList.add('next');
-          } else if (diff === -2 || (diff === totalSlides - 2 && currentSlide <= 1)) {
-            slide.classList.add('far-prev');
-          } else if (diff === 2 || (diff === -totalSlides + 2 && currentSlide >= totalSlides - 2)) {
-            slide.classList.add('far-next');
-          }
+          if (diff === 0) slide.classList.add('active');
+          else if (diff === -1 || (diff === totalSlides - 1 && currentSlide === 0)) slide.classList.add('prev');
+          else if (diff === 1 || (diff === -totalSlides + 1 && currentSlide === totalSlides - 1)) slide.classList.add('next');
+          else if (diff === -2 || (diff === totalSlides - 2 && currentSlide <= 1)) slide.classList.add('far-prev');
+          else if (diff === 2 || (diff === -totalSlides + 2 && currentSlide >= totalSlides - 2)) slide.classList.add('far-next');
         });
       }
       
@@ -347,18 +315,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       updateSlides();
       
-      if (rotationInterval) {
-        clearInterval(rotationInterval);
-      }
-      
+      if (rotationInterval) clearInterval(rotationInterval);
       rotationInterval = setInterval(nextSlide, 4000);
       
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          clearInterval(rotationInterval);
-        } else {
-          rotationInterval = setInterval(nextSlide, 4000);
-        }
+        if (document.hidden) clearInterval(rotationInterval);
+        else rotationInterval = setInterval(nextSlide, 4000);
       });
     });
   }
@@ -368,10 +330,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeStaticFlowers();
     initializeFlowerRain(flowerRainContainer);
     initializeFlowerRain(flowerRainMainContainer);
-    setupClickInteraction(); // Esta función maneja tanto clicks reales como simulados
-    initShakeDetection(); // Esta función simula clicks cuando detecta shake
+    setupClickInteraction();
+    initShakeDetection();
     
-    // Iniciar contador
     updateCountdown();
     setInterval(updateCountdown, 1000);
   }
