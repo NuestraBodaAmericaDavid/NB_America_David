@@ -325,7 +325,7 @@ body {
 .time-label-elegant {
   font-family: 'Dancing Script', cursive;
   font-size: 1.1rem;
-  color: #D4AF37;
+  color: #FFFFFF;
   margin-top: 8px;
   font-weight: 600;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
@@ -335,7 +335,7 @@ body {
 .separator-elegant {
   font-size: 2rem;
   font-weight: bold;
-  color: #D4AF37;
+  color: #FFFFFF;
   margin: 0 5px;
   text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
   animation: pulse-gold 2s ease-in-out infinite;
@@ -732,3 +732,4 @@ body {
     transform: translateX(140px) scale(0.8);
   }
 }
+
