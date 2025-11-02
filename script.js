@@ -19,25 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
 
-  // Función para reproducir música
+  // Función para reproducir música - SE LLAMA AUTOMÁTICAMENTE AL MOSTRAR LA SEGUNDA PANTALLA
   function playMusic() {
-    if (backgroundMusic && !backgroundMusic.playing) {
-      console.log('🔊 REPRODUCIENDO MÚSICA...');
+    if (backgroundMusic) {
+      console.log('🎵 ACTIVANDO MÚSICA EN SEGUNDA PANTALLA...');
       backgroundMusic.volume = 0.6;
       backgroundMusic.muted = false;
       
-      // Forzar la reproducción
+      // Reproducir música
       backgroundMusic.play().then(() => {
         console.log('✅ Música reproducida exitosamente');
-        backgroundMusic.playing = true;
       }).catch(error => {
         console.log('❌ Error reproduciendo música:', error);
-        // Intentar de nuevo
+        // Intentar de nuevo después de 1 segundo
         setTimeout(() => {
-          backgroundMusic.play().then(() => {
-            backgroundMusic.playing = true;
-          });
-        }, 300);
+          backgroundMusic.play();
+        }, 1000);
       });
     }
   }
@@ -66,20 +63,19 @@ document.addEventListener('DOMContentLoaded', () => {
     secondsElement.textContent = seconds.toString().padStart(2, '0');
   }
   
-  // DETECCIÓN DE AGITADO - VERSIÓN SUPER SIMPLE
+  // DETECCIÓN DE AGITADO - SOLO PARA CAMBIAR DE PANTALLA
   function initShakeDetection() {
     if (!window.DeviceMotionEvent) {
       console.log('❌ Dispositivo no soporta detección de movimiento');
       return;
     }
     
-    console.log('📱 Iniciando detección de agitado...');
+    console.log('📱 Detección de agitado activada');
     
     let lastAcceleration = null;
     
-    // Pedir permiso para iOS
+    // Para iOS - pedir permiso
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      console.log('🍎 iOS detectado - solicitando permiso...');
       DeviceMotionEvent.requestPermission()
         .then(permissionState => {
           if (permissionState === 'granted') {
@@ -107,17 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         
-        // Calcular diferencia
         const deltaX = Math.abs(acceleration.x - lastAcceleration.x);
         const deltaY = Math.abs(acceleration.y - lastAcceleration.y);
         const deltaZ = Math.abs(acceleration.z - lastAcceleration.z);
         
         const totalMovement = deltaX + deltaY + deltaZ;
         
-        // Umbral más bajo para mayor sensibilidad
         if (totalMovement > 20) {
-          console.log('🎯 SHAKE DETECTADO! Movimiento:', totalMovement.toFixed(2));
-          handleShakeDetected();
+          console.log('🎯 Agitado detectado - Cambiando de pantalla');
+          handleInteractionDetected();
         }
         
         lastAcceleration = {
@@ -129,19 +123,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FUNCIÓN ESPECÍFICA PARA SHAKE
-  function handleShakeDetected() {
+  // FUNCIÓN PRINCIPAL - SE EJECUTA CON CLICK O SHAKE
+  function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
-    console.log('🚀 EJECUTANDO handleShakeDetected()');
+    console.log('🚀 Cambiando a segunda pantalla...');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
-    // 1. PRIMERO reproducir música inmediatamente
-    console.log('🎵 REPRODUCIENDO MÚSICA DESDE SHAKE...');
-    playMusic();
-    
-    // 2. LUEGO los efectos visuales
+    // Efectos visuales
     blockIntro.classList.add('blow-detected');
     
     gsap.to('.rings-image', {
@@ -151,50 +141,23 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: "back.out(1.7)"
     });
     
-    // Transición
+    // Transición a segunda pantalla
     setTimeout(() => {
+      // Ocultar primera pantalla
       blockIntro.classList.add('hidden');
+      
+      // Mostrar segunda pantalla
       blockInvitation.classList.remove('hidden');
       gsap.fromTo(blockInvitation, 
         { opacity: 0 }, 
         { opacity: 1, duration: 1.5 }
       );
       
-      setTimeout(initialize3DCarousel, 500);
-    }, 2000);
-  }
-
-  // FUNCIÓN PARA CLICK
-  function handleClickDetected() {
-    if (isInteractionDetected) return;
-    
-    console.log('🖱️ EJECUTANDO handleClickDetected()');
-    isInteractionDetected = true;
-    shakeDetectionActive = false;
-    
-    // 1. PRIMERO reproducir música inmediatamente
-    console.log('🎵 REPRODUCIENDO MÚSICA DESDE CLICK...');
-    playMusic();
-    
-    // 2. LUEGO los efectos visuales
-    blockIntro.classList.add('blow-detected');
-    
-    gsap.to('.rings-image', {
-      rotation: 360,
-      scale: 1.2,
-      duration: 1.5,
-      ease: "back.out(1.7)"
-    });
-    
-    // Transición
-    setTimeout(() => {
-      blockIntro.classList.add('hidden');
-      blockInvitation.classList.remove('hidden');
-      gsap.fromTo(blockInvitation, 
-        { opacity: 0 }, 
-        { opacity: 1, duration: 1.5 }
-      );
+      // 🔥 REPRODUCIR MÚSICA AUTOMÁTICAMENTE AL MOSTRAR LA SEGUNDA PANTALLA
+      console.log('🎵 Reproduciendo música automáticamente...');
+      playMusic();
       
+      // Inicializar carrusel
       setTimeout(initialize3DCarousel, 500);
     }, 2000);
   }
@@ -264,13 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupClickInteraction() {
     document.addEventListener('click', () => {
       if (!isInteractionDetected) {
-        handleClickDetected();
+        handleInteractionDetected();
       }
     });
     
     document.addEventListener('touchstart', () => {
       if (!isInteractionDetected) {
-        handleClickDetected();
+        handleInteractionDetected();
       }
     });
   }
