@@ -22,9 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para reproducir música - OPTIMIZADA PARA MÓVILES
   function playMusic() {
     if (backgroundMusic) {
+      console.log('Intentando reproducir música...');
       // Configurar la música
       backgroundMusic.volume = 0.6;
-      backgroundMusic.muted = false; // Asegurar que no esté silenciada
+      backgroundMusic.muted = false;
       
       // Intentar reproducir
       const playPromise = backgroundMusic.play();
@@ -34,50 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Música reproducida exitosamente');
         }).catch(error => {
           console.log('Error en reproducción automática:', error);
-          // En móviles, intentar de nuevo después de un breve delay
+          // Intentar de nuevo después de un breve delay
           setTimeout(() => {
             backgroundMusic.play().catch(e => {
               console.log('Segundo intento fallido:', e);
-              // Si falla de nuevo, el usuario puede activar manualmente
-              showAudioHint();
             });
           }, 500);
         });
       }
-    }
-  }
-
-  // Mostrar indicación sutil de audio si es necesario
-  function showAudioHint() {
-    // Solo mostrar si estamos en móvil y la música no se reproduce
-    if (/Mobi|Android/i.test(navigator.userAgent)) {
-      const hint = document.createElement('div');
-      hint.innerHTML = `
-        <div style="
-          position: fixed;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(0, 0, 0, 0.8);
-          color: white;
-          padding: 10px 20px;
-          border-radius: 25px;
-          font-size: 14px;
-          z-index: 10000;
-          backdrop-filter: blur(10px);
-          border: 1px solid #D4AF37;
-        ">
-          🔇 El sonido podría estar silenciado - Revisa los controles de audio
-        </div>
-      `;
-      document.body.appendChild(hint);
-      
-      // Remover después de 5 segundos
-      setTimeout(() => {
-        if (hint.parentNode) {
-          hint.parentNode.removeChild(hint);
-        }
-      }, 5000);
     }
   }
 
@@ -105,24 +70,40 @@ document.addEventListener('DOMContentLoaded', () => {
     secondsElement.textContent = seconds.toString().padStart(2, '0');
   }
   
-  // DETECCIÓN DE AGITADO (SHAKE)
+  // DETECCIÓN DE AGITADO (SHAKE) - CORREGIDA
   function initShakeDetection() {
     if (!window.DeviceMotionEvent) {
       console.log('Dispositivo no soporta detección de movimiento');
       return;
     }
     
-    let lastX, lastY, lastZ;
+    console.log('Iniciando detección de agitado...');
+    
+    let lastX = null, lastY = null, lastZ = null;
     let moveCounter = 0;
     const shakeThreshold = 15;
-    
-    window.addEventListener('devicemotion', (event) => {
+    let isRequestingPermission = false;
+
+    // Función para iniciar la detección de movimiento
+    function startMotionDetection() {
+      console.log('Iniciando sensor de movimiento...');
+      
+      window.addEventListener('devicemotion', handleDeviceMotion);
+      
+      // También agregar detección de orientación como fallback
+      window.addEventListener('deviceorientation', handleDeviceOrientation);
+    }
+
+    // Manejar datos del acelerómetro
+    function handleDeviceMotion(event) {
       if (!shakeDetectionActive || isInteractionDetected) return;
       
       const acceleration = event.accelerationIncludingGravity;
+      if (!acceleration) return;
+      
       const { x, y, z } = acceleration;
       
-      if (!lastX && !lastY && !lastZ) {
+      if (lastX === null || lastY === null || lastZ === null) {
         lastX = x;
         lastY = y;
         lastZ = z;
@@ -133,34 +114,157 @@ document.addEventListener('DOMContentLoaded', () => {
       const deltaY = Math.abs(y - lastY);
       const deltaZ = Math.abs(z - lastZ);
       
+      console.log(`Movimiento detectado - X: ${deltaX.toFixed(2)}, Y: ${deltaY.toFixed(2)}, Z: ${deltaZ.toFixed(2)}`);
+      
       if (deltaX + deltaY + deltaZ > shakeThreshold) {
         moveCounter++;
+        console.log(`Movimiento fuerte detectado! Contador: ${moveCounter}`);
         
-        if (moveCounter > 5) {
+        if (moveCounter >= 3) { // Reducido para mayor sensibilidad
+          console.log('¡Agitado detectado! Activando música...');
           handleInteractionDetected();
         }
       } else {
-        moveCounter = Math.max(0, moveCounter - 0.5);
+        moveCounter = Math.max(0, moveCounter - 0.1); // Reducir más lentamente
       }
       
       lastX = x;
       lastY = y;
       lastZ = z;
-    });
-    
-    // Fallback para desktop - tecla espacio
+    }
+
+    // Manejar orientación como fallback
+    function handleDeviceOrientation(event) {
+      if (!shakeDetectionActive || isInteractionDetected) return;
+      
+      const { beta, gamma } = event; // beta: inclinación front-back, gamma: inclinación left-right
+      
+      // Detectar cambios bruscos en la orientación
+      if (Math.abs(beta) > 45 || Math.abs(gamma) > 45) {
+        moveCounter++;
+        console.log(`Inclinación detectada! Contador: ${moveCounter}`);
+        
+        if (moveCounter >= 2) {
+          console.log('¡Inclinación fuerte detectada! Activando música...');
+          handleInteractionDetected();
+        }
+      }
+    }
+
+    // Pedir permiso para iOS
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      console.log('Solicitando permiso para sensor de movimiento...');
+      
+      // Crear un botón overlay para pedir permiso en iOS
+      const permissionOverlay = document.createElement('div');
+      permissionOverlay.innerHTML = `
+        <div style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 87, 163, 0.95);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+          color: white;
+          font-family: Arial, sans-serif;
+          text-align: center;
+          padding: 20px;
+          backdrop-filter: blur(10px);
+        ">
+          <div style="
+            background: rgba(245, 249, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #D4AF37;
+            max-width: 400px;
+          ">
+            <h2 style="font-family: 'Dancing Script', cursive; font-size: 2rem; margin-bottom: 15px; color: #D4AF37;">
+              Permiso para Agitar
+            </h2>
+            <p style="font-size: 1rem; margin-bottom: 25px; line-height: 1.5;">
+              Para usar la función de "agitar", necesitamos acceso al sensor de movimiento de tu dispositivo.
+            </p>
+            <button id="grant-permission-btn" style="
+              background: linear-gradient(135deg, #D4AF37, #FFD700);
+              color: #0057A3;
+              border: none;
+              padding: 12px 25px;
+              font-size: 1.1rem;
+              font-weight: bold;
+              border-radius: 50px;
+              cursor: pointer;
+              font-family: 'Dancing Script', cursive;
+              width: 100%;
+            ">
+              Permitir Sensor de Movimiento
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(permissionOverlay);
+      
+      document.getElementById('grant-permission-btn').addEventListener('click', function() {
+        DeviceMotionEvent.requestPermission()
+          .then(permissionState => {
+            permissionOverlay.remove();
+            if (permissionState === 'granted') {
+              console.log('Permiso concedido para sensor de movimiento');
+              startMotionDetection();
+            } else {
+              console.log('Permiso denegado para sensor de movimiento');
+            }
+          })
+          .catch(error => {
+            console.log('Error al solicitar permiso:', error);
+            permissionOverlay.remove();
+          });
+      });
+    } else {
+      // Para Android y otros navegadores que no requieren permiso
+      console.log('Iniciando detección sin necesidad de permiso...');
+      startMotionDetection();
+    }
+
+    // Fallback para desktop - tecla espacio y movimiento de mouse rápido
     document.addEventListener('keydown', (e) => {
       if (!shakeDetectionActive || isInteractionDetected) return;
       
       if (e.code === 'Space' || e.key === ' ') {
+        console.log('Tecla espacio presionada - simulando agitado');
         handleInteractionDetected();
       }
+    });
+
+    // Detectar movimiento rápido de mouse como agitado en desktop
+    let lastMouseMove = Date.now();
+    document.addEventListener('mousemove', () => {
+      if (!shakeDetectionActive || isInteractionDetected) return;
+      
+      const now = Date.now();
+      if (now - lastMouseMove < 100) { // Movimiento muy rápido
+        moveCounter++;
+        console.log('Movimiento rápido de mouse detectado');
+        
+        if (moveCounter >= 3) {
+          console.log('¡Movimiento de mouse detectado como agitado!');
+          handleInteractionDetected();
+        }
+      }
+      lastMouseMove = now;
     });
   }
 
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
+    console.log('Interacción detectada, activando efectos...');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
@@ -175,7 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: "back.out(1.7)"
     });
     
-    // Reproducir música - ESTA ES LA INTERACCIÓN DEL USUARIO
+    // Reproducir música - IMPORTANTE: esto se ejecuta tanto para click como para shake
+    console.log('Reproduciendo música...');
     playMusic();
     
     // Transición después de la animación
@@ -267,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleClick(e) {
       if (!isInteractionDetected) {
+        console.log('Click detectado, activando...');
         if (shakeDetectionActive) {
           shakeDetectionActive = false;
         }
