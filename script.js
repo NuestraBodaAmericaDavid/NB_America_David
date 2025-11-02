@@ -19,31 +19,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
 
-  // Función para FORZAR la reproducción de música
+  // Función para FORZAR la música - SOLO se llama desde la animación de anillos
   function forcePlayMusic() {
-    console.log('🎵 FORZANDO REPRODUCCIÓN DE MÚSICA...');
+    console.log('🔥 FORZANDO MÚSICA DESDE ANIMACIÓN DE ANILLOS');
     
-    if (backgroundMusic) {
-      // Configurar audio
-      backgroundMusic.volume = 0.6;
-      backgroundMusic.muted = false;
-      
-      // Detener y reiniciar para forzar reproducción
-      backgroundMusic.pause();
-      backgroundMusic.currentTime = 0;
-      
-      // Forzar reproducción múltiples veces si es necesario
-      const playAudio = () => {
-        backgroundMusic.play().then(() => {
-          console.log('✅ Música reproducida forzadamente');
-        }).catch(error => {
-          console.log('❌ Error forzando música, reintentando...', error);
-          setTimeout(playAudio, 500);
-        });
-      };
-      
-      playAudio();
-    }
+    if (!backgroundMusic) return;
+    
+    // Configuración básica
+    backgroundMusic.volume = 0.6;
+    backgroundMusic.muted = false;
+    
+    // FORZAR reproducción
+    backgroundMusic.play().then(() => {
+      console.log('✅ Música forzada exitosamente');
+    }).catch(error => {
+      console.log('❌ Error forzando música:', error);
+      // Reintentar inmediatamente
+      setTimeout(() => backgroundMusic.play(), 100);
+    });
   }
 
   // Función para actualizar la cuenta regresiva
@@ -72,18 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // DETECCIÓN DE AGITADO
   function initShakeDetection() {
-    if (!window.DeviceMotionEvent) {
-      return;
-    }
+    if (!window.DeviceMotionEvent) return;
     
     let lastAcceleration = null;
     
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission()
         .then(permissionState => {
-          if (permissionState === 'granted') {
-            startShakeDetection();
-          }
+          if (permissionState === 'granted') startShakeDetection();
         })
         .catch(console.error);
     } else {
@@ -108,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalMovement = deltaX + deltaY + deltaZ;
         
         if (totalMovement > 20) {
-          console.log('📱 SHAKE DETECTADO - Iniciando animación');
           handleInteractionDetected();
         }
         
@@ -117,33 +105,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FUNCIÓN PRINCIPAL - SE EJECUTA CON CLICK O SHAKE
+  // FUNCIÓN PRINCIPAL
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
-    console.log('🚀 Iniciando animaciones...');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
     // Efectos visuales
     blockIntro.classList.add('blow-detected');
     
-    // ANIMACIÓN DE ANILLOS - FORZAR MÚSICA AQUÍ
-    console.log('🔄 INICIANDO ANIMACIÓN DE ANILLOS...');
-    
+    // ANIMACIÓN DE ANILLOS - AQUÍ SE ACTIVA LA MÚSICA
     gsap.to('.rings-image', {
       rotation: 360,
       scale: 1.2,
       duration: 1.5,
       ease: "back.out(1.7)",
       onStart: function() {
-        console.log('🎯 ANIMACIÓN DE ANILLOS INICIADA - FORZANDO MÚSICA');
-        // 🔥 FORZAR REPRODUCCIÓN DE MÚSICA INMEDIATAMENTE
+        // 🔥 ESTA ES LA ÚNICA LÍNEA QUE ACTIVA LA MÚSICA
         forcePlayMusic();
       }
     });
     
-    // Transición a segunda pantalla
+    // Transición
     setTimeout(() => {
       blockIntro.classList.add('hidden');
       blockInvitation.classList.remove('hidden');
@@ -152,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { opacity: 1, duration: 1.5 }
       );
       
-      // Inicializar carrusel
       setTimeout(initialize3DCarousel, 500);
     }, 2000);
   }
@@ -205,9 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       container.appendChild(flower);
       
       setTimeout(() => {
-        if (flower.parentNode) {
-          flower.parentNode.removeChild(flower);
-        }
+        if (flower.parentNode) flower.parentNode.removeChild(flower);
       }, duration * 1000);
     }
     
@@ -221,17 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // CLICK FUNCIONAL
   function setupClickInteraction() {
     document.addEventListener('click', () => {
-      if (!isInteractionDetected) {
-        console.log('🖱️ CLICK DETECTADO - Iniciando animación');
-        handleInteractionDetected();
-      }
+      if (!isInteractionDetected) handleInteractionDetected();
     });
     
     document.addEventListener('touchstart', () => {
-      if (!isInteractionDetected) {
-        console.log('📱 TOUCH DETECTADO - Iniciando animación');
-        handleInteractionDetected();
-      }
+      if (!isInteractionDetected) handleInteractionDetected();
     });
   }
 
@@ -253,12 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
           slide.classList.remove('active', 'prev', 'next', 'far-prev', 'far-next');
           
           let diff = index - currentSlide;
-          
-          if (diff < -Math.floor(totalSlides / 2)) {
-            diff += totalSlides;
-          } else if (diff > Math.floor(totalSlides / 2)) {
-            diff -= totalSlides;
-          }
+          if (diff < -Math.floor(totalSlides / 2)) diff += totalSlides;
+          else if (diff > Math.floor(totalSlides / 2)) diff -= totalSlides;
           
           if (diff === 0) slide.classList.add('active');
           else if (diff === -1 || (diff === totalSlides - 1 && currentSlide === 0)) slide.classList.add('prev');
