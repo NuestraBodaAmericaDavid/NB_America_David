@@ -19,6 +19,68 @@ document.addEventListener('DOMContentLoaded', () => {
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
 
+  // Función para reproducir música - OPTIMIZADA PARA MÓVILES
+  function playMusic() {
+    if (backgroundMusic) {
+      // Configurar la música
+      backgroundMusic.volume = 0.6;
+      backgroundMusic.muted = false; // Asegurar que no esté silenciada
+      
+      // Intentar reproducir
+      const playPromise = backgroundMusic.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('Música reproducida exitosamente');
+        }).catch(error => {
+          console.log('Error en reproducción automática:', error);
+          // En móviles, intentar de nuevo después de un breve delay
+          setTimeout(() => {
+            backgroundMusic.play().catch(e => {
+              console.log('Segundo intento fallido:', e);
+              // Si falla de nuevo, el usuario puede activar manualmente
+              showAudioHint();
+            });
+          }, 500);
+        });
+      }
+    }
+  }
+
+  // Mostrar indicación sutil de audio si es necesario
+  function showAudioHint() {
+    // Solo mostrar si estamos en móvil y la música no se reproduce
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      const hint = document.createElement('div');
+      hint.innerHTML = `
+        <div style="
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 25px;
+          font-size: 14px;
+          z-index: 10000;
+          backdrop-filter: blur(10px);
+          border: 1px solid #D4AF37;
+        ">
+          🔇 El sonido podría estar silenciado - Revisa los controles de audio
+        </div>
+      `;
+      document.body.appendChild(hint);
+      
+      // Remover después de 5 segundos
+      setTimeout(() => {
+        if (hint.parentNode) {
+          hint.parentNode.removeChild(hint);
+        }
+      }, 5000);
+    }
+  }
+
   // Función para actualizar la cuenta regresiva
   function updateCountdown() {
     const now = new Date();
@@ -52,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let lastX, lastY, lastZ;
     let moveCounter = 0;
-    const shakeThreshold = 15; // Sensibilidad del agitado
+    const shakeThreshold = 15;
     
     window.addEventListener('devicemotion', (event) => {
       if (!shakeDetectionActive || isInteractionDetected) return;
@@ -74,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (deltaX + deltaY + deltaZ > shakeThreshold) {
         moveCounter++;
         
-        if (moveCounter > 5) { // Confirmar agitado
+        if (moveCounter > 5) {
           handleInteractionDetected();
         }
       } else {
@@ -86,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastZ = z;
     });
     
-    // Fallback para desktop - simular agitado con tecla espacio
+    // Fallback para desktop - tecla espacio
     document.addEventListener('keydown', (e) => {
       if (!shakeDetectionActive || isInteractionDetected) return;
       
@@ -113,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: "back.out(1.7)"
     });
     
-    // Reproducir música
+    // Reproducir música - ESTA ES LA INTERACCIÓN DEL USUARIO
     playMusic();
     
     // Transición después de la animación
@@ -190,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Crear flores MUY FRECUENTEMENTE
-    setInterval(createFallingFlower, 400);
+    setInterval(createFallingFlower, 100);
     
     // Crear muchas flores iniciales
     for (let i = 0; i < 40; i++) {
@@ -210,15 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         handleInteractionDetected();
       }
-    }
-  }
-
-  function playMusic() {
-    if (backgroundMusic) {
-      backgroundMusic.volume = 0.6;
-      backgroundMusic.play().catch(error => {
-        console.log('Error reproduciendo música:', error);
-      });
     }
   }
 
@@ -309,6 +362,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   init();
 });
-
-
-
