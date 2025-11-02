@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let shakeDetectionActive = true;
   let musicActivated = false;
 
-  // Función para activar música - SE LLAMA CUANDO COMIENZA LA ANIMACIÓN
+  // Función para activar música - SOLO SE LLAMA DESDE LA ANIMACIÓN DE ANILLOS
   function activateMusic() {
     if (musicActivated) return;
     
-    console.log('🎵 ACTIVANDO MÚSICA CON ANIMACIÓN DE ANILLOS...');
+    console.log('🎵 ACTIVANDO MÚSICA DESDE ANIMACIÓN DE ANILLOS...');
     musicActivated = true;
     
     if (backgroundMusic) {
@@ -35,10 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Música activada exitosamente');
       }).catch(error => {
         console.log('❌ Error activando música:', error);
-        // Intentar de nuevo después de un segundo
-        setTimeout(() => {
-          backgroundMusic.play();
-        }, 1000);
       });
     }
   }
@@ -113,32 +109,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FUNCIÓN PRINCIPAL - SE EJECUTA CON CLICK O SHAKE
+  // FUNCIÓN PRINCIPAL - SOLO INICIA ANIMACIONES
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
-    console.log('🚀 Iniciando animación de anillos...');
+    console.log('🚀 Iniciando animaciones...');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
-    // 1. PRIMERO activar la música inmediatamente
-    activateMusic();
-    
-    // 2. LUEGO iniciar las animaciones visuales
+    // Efectos visuales
     blockIntro.classList.add('blow-detected');
     
-    // Animación de anillos - ESTO ES LO QUE DETONA LA MÚSICA
+    // ANIMACIÓN DE ANILLOS - ESTA ES LA QUE ACTIVA LA MÚSICA
     gsap.to('.rings-image', {
       rotation: 360,
       scale: 1.2,
       duration: 1.5,
       ease: "back.out(1.7)",
       onStart: function() {
-        console.log('🔄 Animación de anillos INICIADA - Música debería estar sonando');
-        // Asegurar que la música se active si no lo hizo antes
-        if (!musicActivated) {
-          activateMusic();
-        }
+        console.log('🔄 ANIMACIÓN DE ANILLOS INICIADA - ACTIVANDO MÚSICA');
+        activateMusic(); // 🔥 LA MÚSICA SE ACTIVA AQUÍ
       }
     });
     
