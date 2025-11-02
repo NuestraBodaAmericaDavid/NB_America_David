@@ -17,26 +17,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const targetDate = new Date(2025, 11, 18, 0, 0, 0);
   
   let isInteractionDetected = false;
-  let shakeDetectionActive = true;
 
-  // Función para FORZAR la música - SOLO se llama desde la animación de anillos
-  function forcePlayMusic() {
-    console.log('🔥 FORZANDO MÚSICA DESDE ANIMACIÓN DE ANILLOS');
-    
-    if (!backgroundMusic) return;
-    
-    // Configuración básica
-    backgroundMusic.volume = 0.6;
-    backgroundMusic.muted = false;
-    
-    // FORZAR reproducción
-    backgroundMusic.play().then(() => {
-      console.log('✅ Música forzada exitosamente');
-    }).catch(error => {
-      console.log('❌ Error forzando música:', error);
-      // Reintentar inmediatamente
-      setTimeout(() => backgroundMusic.play(), 100);
-    });
+  // Función para reproducir música
+  function playMusic() {
+    if (backgroundMusic) {
+      console.log('🎵 Reproduciendo música...');
+      backgroundMusic.volume = 0.6;
+      backgroundMusic.muted = false;
+      
+      backgroundMusic.play().then(() => {
+        console.log('✅ Música reproducida exitosamente');
+      }).catch(error => {
+        console.log('❌ Error reproduciendo música:', error);
+        // Intentar de nuevo después de un segundo
+        setTimeout(() => {
+          backgroundMusic.play();
+        }, 1000);
+      });
+    }
   }
 
   // Función para actualizar la cuenta regresiva
@@ -62,72 +60,29 @@ document.addEventListener('DOMContentLoaded', () => {
     minutesElement.textContent = minutes.toString().padStart(2, '0');
     secondsElement.textContent = seconds.toString().padStart(2, '0');
   }
-  
-  // DETECCIÓN DE AGITADO
-  function initShakeDetection() {
-    if (!window.DeviceMotionEvent) return;
-    
-    let lastAcceleration = null;
-    
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      DeviceMotionEvent.requestPermission()
-        .then(permissionState => {
-          if (permissionState === 'granted') startShakeDetection();
-        })
-        .catch(console.error);
-    } else {
-      startShakeDetection();
-    }
-    
-    function startShakeDetection() {
-      window.addEventListener('devicemotion', (event) => {
-        if (!shakeDetectionActive || isInteractionDetected) return;
-        
-        const acceleration = event.accelerationIncludingGravity;
-        if (!acceleration) return;
-        
-        if (!lastAcceleration) {
-          lastAcceleration = { x: acceleration.x, y: acceleration.y, z: acceleration.z };
-          return;
-        }
-        
-        const deltaX = Math.abs(acceleration.x - lastAcceleration.x);
-        const deltaY = Math.abs(acceleration.y - lastAcceleration.y);
-        const deltaZ = Math.abs(acceleration.z - lastAcceleration.z);
-        const totalMovement = deltaX + deltaY + deltaZ;
-        
-        if (totalMovement > 20) {
-          handleInteractionDetected();
-        }
-        
-        lastAcceleration = { x: acceleration.x, y: acceleration.y, z: acceleration.z };
-      });
-    }
-  }
 
-  // FUNCIÓN PRINCIPAL
+  // FUNCIÓN PRINCIPAL - SE EJECUTA CON CLICK
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
+    console.log('🖱️ Click detectado - Iniciando animación...');
     isInteractionDetected = true;
-    shakeDetectionActive = false;
     
     // Efectos visuales
     blockIntro.classList.add('blow-detected');
     
-    // ANIMACIÓN DE ANILLOS - AQUÍ SE ACTIVA LA MÚSICA
+    // Animación de anillos
     gsap.to('.rings-image', {
       rotation: 360,
       scale: 1.2,
       duration: 1.5,
-      ease: "back.out(1.7)",
-      onStart: function() {
-        // 🔥 ESTA ES LA ÚNICA LÍNEA QUE ACTIVA LA MÚSICA
-        forcePlayMusic();
-      }
+      ease: "back.out(1.7)"
     });
     
-    // Transición
+    // Reproducir música
+    playMusic();
+    
+    // Transición a segunda pantalla
     setTimeout(() => {
       blockIntro.classList.add('hidden');
       blockInvitation.classList.remove('hidden');
@@ -136,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { opacity: 1, duration: 1.5 }
       );
       
+      // Inicializar carrusel
       setTimeout(initialize3DCarousel, 500);
     }, 2000);
   }
@@ -188,7 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
       container.appendChild(flower);
       
       setTimeout(() => {
-        if (flower.parentNode) flower.parentNode.removeChild(flower);
+        if (flower.parentNode) {
+          flower.parentNode.removeChild(flower);
+        }
       }, duration * 1000);
     }
     
@@ -202,11 +160,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // CLICK FUNCIONAL
   function setupClickInteraction() {
     document.addEventListener('click', () => {
-      if (!isInteractionDetected) handleInteractionDetected();
+      if (!isInteractionDetected) {
+        handleInteractionDetected();
+      }
     });
     
     document.addEventListener('touchstart', () => {
-      if (!isInteractionDetected) handleInteractionDetected();
+      if (!isInteractionDetected) {
+        handleInteractionDetected();
+      }
     });
   }
 
@@ -228,8 +190,12 @@ document.addEventListener('DOMContentLoaded', () => {
           slide.classList.remove('active', 'prev', 'next', 'far-prev', 'far-next');
           
           let diff = index - currentSlide;
-          if (diff < -Math.floor(totalSlides / 2)) diff += totalSlides;
-          else if (diff > Math.floor(totalSlides / 2)) diff -= totalSlides;
+          
+          if (diff < -Math.floor(totalSlides / 2)) {
+            diff += totalSlides;
+          } else if (diff > Math.floor(totalSlides / 2)) {
+            diff -= totalSlides;
+          }
           
           if (diff === 0) slide.classList.add('active');
           else if (diff === -1 || (diff === totalSlides - 1 && currentSlide === 0)) slide.classList.add('prev');
@@ -262,8 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeFlowerRain(flowerRainContainer);
     initializeFlowerRain(flowerRainMainContainer);
     setupClickInteraction();
-    initShakeDetection();
     
+    // Iniciar contador
     updateCountdown();
     setInterval(updateCountdown, 1000);
   }
