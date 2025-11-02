@@ -18,20 +18,24 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
+  let musicActivated = false;
 
-  // Función para reproducir música - SE LLAMA AUTOMÁTICAMENTE AL MOSTRAR LA SEGUNDA PANTALLA
-  function playMusic() {
+  // Función para activar música - SE LLAMA CUANDO COMIENZA LA ANIMACIÓN
+  function activateMusic() {
+    if (musicActivated) return;
+    
+    console.log('🎵 ACTIVANDO MÚSICA CON ANIMACIÓN DE ANILLOS...');
+    musicActivated = true;
+    
     if (backgroundMusic) {
-      console.log('🎵 ACTIVANDO MÚSICA EN SEGUNDA PANTALLA...');
       backgroundMusic.volume = 0.6;
       backgroundMusic.muted = false;
       
-      // Reproducir música
       backgroundMusic.play().then(() => {
-        console.log('✅ Música reproducida exitosamente');
+        console.log('✅ Música activada exitosamente');
       }).catch(error => {
-        console.log('❌ Error reproduciendo música:', error);
-        // Intentar de nuevo después de 1 segundo
+        console.log('❌ Error activando música:', error);
+        // Intentar de nuevo después de un segundo
         setTimeout(() => {
           backgroundMusic.play();
         }, 1000);
@@ -63,18 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
     secondsElement.textContent = seconds.toString().padStart(2, '0');
   }
   
-  // DETECCIÓN DE AGITADO - SOLO PARA CAMBIAR DE PANTALLA
+  // DETECCIÓN DE AGITADO
   function initShakeDetection() {
     if (!window.DeviceMotionEvent) {
-      console.log('❌ Dispositivo no soporta detección de movimiento');
       return;
     }
     
-    console.log('📱 Detección de agitado activada');
-    
     let lastAcceleration = null;
     
-    // Para iOS - pedir permiso
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission()
         .then(permissionState => {
@@ -95,30 +95,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!acceleration) return;
         
         if (!lastAcceleration) {
-          lastAcceleration = {
-            x: acceleration.x,
-            y: acceleration.y,
-            z: acceleration.z
-          };
+          lastAcceleration = { x: acceleration.x, y: acceleration.y, z: acceleration.z };
           return;
         }
         
         const deltaX = Math.abs(acceleration.x - lastAcceleration.x);
         const deltaY = Math.abs(acceleration.y - lastAcceleration.y);
         const deltaZ = Math.abs(acceleration.z - lastAcceleration.z);
-        
         const totalMovement = deltaX + deltaY + deltaZ;
         
         if (totalMovement > 20) {
-          console.log('🎯 Agitado detectado - Cambiando de pantalla');
           handleInteractionDetected();
         }
         
-        lastAcceleration = {
-          x: acceleration.x,
-          y: acceleration.y,
-          z: acceleration.z
-        };
+        lastAcceleration = { x: acceleration.x, y: acceleration.y, z: acceleration.z };
       });
     }
   }
@@ -127,35 +117,39 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
-    console.log('🚀 Cambiando a segunda pantalla...');
+    console.log('🚀 Iniciando animación de anillos...');
     isInteractionDetected = true;
     shakeDetectionActive = false;
     
-    // Efectos visuales
+    // 1. PRIMERO activar la música inmediatamente
+    activateMusic();
+    
+    // 2. LUEGO iniciar las animaciones visuales
     blockIntro.classList.add('blow-detected');
     
+    // Animación de anillos - ESTO ES LO QUE DETONA LA MÚSICA
     gsap.to('.rings-image', {
       rotation: 360,
       scale: 1.2,
       duration: 1.5,
-      ease: "back.out(1.7)"
+      ease: "back.out(1.7)",
+      onStart: function() {
+        console.log('🔄 Animación de anillos INICIADA - Música debería estar sonando');
+        // Asegurar que la música se active si no lo hizo antes
+        if (!musicActivated) {
+          activateMusic();
+        }
+      }
     });
     
     // Transición a segunda pantalla
     setTimeout(() => {
-      // Ocultar primera pantalla
       blockIntro.classList.add('hidden');
-      
-      // Mostrar segunda pantalla
       blockInvitation.classList.remove('hidden');
       gsap.fromTo(blockInvitation, 
         { opacity: 0 }, 
         { opacity: 1, duration: 1.5 }
       );
-      
-      // 🔥 REPRODUCIR MÚSICA AUTOMÁTICAMENTE AL MOSTRAR LA SEGUNDA PANTALLA
-      console.log('🎵 Reproduciendo música automáticamente...');
-      playMusic();
       
       // Inicializar carrusel
       setTimeout(initialize3DCarousel, 500);
