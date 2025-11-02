@@ -18,24 +18,31 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let isInteractionDetected = false;
   let shakeDetectionActive = true;
-  let musicActivated = false;
 
-  // Función para activar música - SOLO SE LLAMA DESDE LA ANIMACIÓN DE ANILLOS
-  function activateMusic() {
-    if (musicActivated) return;
-    
-    console.log('🎵 ACTIVANDO MÚSICA DESDE ANIMACIÓN DE ANILLOS...');
-    musicActivated = true;
+  // Función para FORZAR la reproducción de música
+  function forcePlayMusic() {
+    console.log('🎵 FORZANDO REPRODUCCIÓN DE MÚSICA...');
     
     if (backgroundMusic) {
+      // Configurar audio
       backgroundMusic.volume = 0.6;
       backgroundMusic.muted = false;
       
-      backgroundMusic.play().then(() => {
-        console.log('✅ Música activada exitosamente');
-      }).catch(error => {
-        console.log('❌ Error activando música:', error);
-      });
+      // Detener y reiniciar para forzar reproducción
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
+      
+      // Forzar reproducción múltiples veces si es necesario
+      const playAudio = () => {
+        backgroundMusic.play().then(() => {
+          console.log('✅ Música reproducida forzadamente');
+        }).catch(error => {
+          console.log('❌ Error forzando música, reintentando...', error);
+          setTimeout(playAudio, 500);
+        });
+      };
+      
+      playAudio();
     }
   }
 
@@ -101,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalMovement = deltaX + deltaY + deltaZ;
         
         if (totalMovement > 20) {
+          console.log('📱 SHAKE DETECTADO - Iniciando animación');
           handleInteractionDetected();
         }
         
@@ -109,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FUNCIÓN PRINCIPAL - SOLO INICIA ANIMACIONES
+  // FUNCIÓN PRINCIPAL - SE EJECUTA CON CLICK O SHAKE
   function handleInteractionDetected() {
     if (isInteractionDetected) return;
     
@@ -120,15 +128,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Efectos visuales
     blockIntro.classList.add('blow-detected');
     
-    // ANIMACIÓN DE ANILLOS - ESTA ES LA QUE ACTIVA LA MÚSICA
+    // ANIMACIÓN DE ANILLOS - FORZAR MÚSICA AQUÍ
+    console.log('🔄 INICIANDO ANIMACIÓN DE ANILLOS...');
+    
     gsap.to('.rings-image', {
       rotation: 360,
       scale: 1.2,
       duration: 1.5,
       ease: "back.out(1.7)",
       onStart: function() {
-        console.log('🔄 ANIMACIÓN DE ANILLOS INICIADA - ACTIVANDO MÚSICA');
-        activateMusic(); // 🔥 LA MÚSICA SE ACTIVA AQUÍ
+        console.log('🎯 ANIMACIÓN DE ANILLOS INICIADA - FORZANDO MÚSICA');
+        // 🔥 FORZAR REPRODUCCIÓN DE MÚSICA INMEDIATAMENTE
+        forcePlayMusic();
       }
     });
     
@@ -211,12 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupClickInteraction() {
     document.addEventListener('click', () => {
       if (!isInteractionDetected) {
+        console.log('🖱️ CLICK DETECTADO - Iniciando animación');
         handleInteractionDetected();
       }
     });
     
     document.addEventListener('touchstart', () => {
       if (!isInteractionDetected) {
+        console.log('📱 TOUCH DETECTADO - Iniciando animación');
         handleInteractionDetected();
       }
     });
